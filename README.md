@@ -21,6 +21,8 @@ region, ranks them against your resume and interests, and finds new employer boa
   country are not.
 - **Any career level.** Internships, co-ops, new grad and entry level are selected by default.
   Add mid-level and senior roles — or choose “Any level” — to collect experienced roles too.
+- **Make it yours.** Pick an accent color in Settings (or one of the presets) and the portal
+  recolors its buttons, links, highlights and sidebar tint. Light picks are deepened to stay readable.
 - **About 1,000 employer boards out of the box.** 96 built-in sources (Greenhouse, Lever, Ashby,
   Workday, LinkedIn public search, Job Bank Canada, Simplify and others) plus 990 boards verified by
   discovery (Workday, Greenhouse, Ashby, Lever, SmartRecruiters, BambooHR, Workable and Recruitee).
@@ -107,7 +109,8 @@ Everything can be set in the web UI. Environment variables (see `.env.example`) 
 **Region** is in Settings: any country, “Anywhere (global)”, or a custom label plus comma-separated
 location keywords. **Role levels** are in Profile; select all six (or “Any level”) to collect
 experienced roles as well as early-career ones. Both choices apply to the next collection run;
-the feed hides stored jobs that no longer match.
+the feed hides stored jobs that no longer match. **Appearance** is also in Settings: choose an accent
+color for the portal; it is stored in the same settings file.
 
 | Variable | Purpose |
 |---|---|

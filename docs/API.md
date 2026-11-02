@@ -110,7 +110,7 @@ Recruitee (`x.recruitee.com`), BambooHR (`x.bamboohr.com/careers`).
 | Method | Path | Body / result |
 |---|---|---|
 | GET | `/api/settings` | see below |
-| PUT | `/api/settings` | `{llm?: {provider, model, base_url}, schedule?: {...}, region?: {id, label?, terms?, include_remote?}}` (partial) → same as GET |
+| PUT | `/api/settings` | `{llm?: {provider, model, base_url}, schedule?: {...}, region?: {id, label?, terms?, include_remote?}, appearance?: {accent}}` (partial) → same as GET |
 | PUT | `/api/settings/secrets` | `{provider: "openai", api_key: "..."}`; `api_key: null` clears it → same as GET |
 | GET | `/api/llm/models?provider=openai` | `{items: [{id, label}], error: null\|str}` |
 | POST | `/api/llm/test` | `{}` → `{ok, provider, model, latency_ms, reply\|null, error\|null}` |
@@ -131,6 +131,7 @@ Recruitee (`x.recruitee.com`), BambooHR (`x.bamboohr.com/careers`).
   "codex": {"logged_in": false, "account": null, "expires_at": null},
   "region": {"id": "ca", "label": "Canada", "terms": [], "include_remote": true},
   "region_options": [{"id": "global", "label": "Anywhere (global)"}, {"id": "ca", "label": "Canada"}, …],
+  "appearance": {"accent": "#236b53"},
   "schedule": {"enabled": true, "collect_times": ["08:00", "18:00"], "discovery_time": "04:30",
                "scout_enabled": false, "scout_time": "01:30", "scout_themes_per_run": 3,
                "collection_budget_minutes": 40, "discovery_budget_minutes": 15},
@@ -146,3 +147,6 @@ API keys are write-only: the API never returns them, only `set/source/hint`.
 `region.id` is an ISO 3166-1 alpha-2 country code, `global`, or `custom`. For a custom region,
 send a `label` and/or comma-readable `terms` list; matching is case-insensitive. `include_remote`
 defaults to true. The feed filters stored jobs by the current region and the profile's levels.
+
+`appearance.accent` is a `#rrggbb` colour or `""` for the built-in theme. `GET /theme.css` serves
+the derived CSS custom properties (accent, hover, soft fill, sidebar tint and active-nav colours).

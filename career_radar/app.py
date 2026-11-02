@@ -63,6 +63,7 @@ class SettingsUpdate(BaseModel):
     llm: dict | None = None
     schedule: dict | None = None
     region: dict | None = None
+    appearance: dict | None = None
 
 
 class SecretUpdate(BaseModel):
@@ -522,6 +523,7 @@ def _settings_payload(http, data):
             "llm": current["llm"] | {"configured": services.llm_configured(data)},
             "providers": providers, "secrets": settings.secret_status(data), "codex": codex,
             "region": current["region"], "region_options": regions.catalog(),
+            "appearance": current["appearance"],
             "schedule": current["schedule"], "schedule_status": sched.status() if sched else None}
 
 
@@ -667,6 +669,12 @@ def create_app(db_path=None, refresh_callback=None, data_dir=None, start_schedul
         if not file.is_file():
             raise HTTPException(503, "Frontend not installed")
         return FileResponse(file)
+
+    @http.get("/theme.css")
+    def theme_css():
+        from . import settings, theme
+        return Response(theme.css(settings.load(data)["appearance"]["accent"]),
+                        media_type="text/css; charset=utf-8")
 
     http.mount("/static", StaticFiles(directory=config.STATIC, check_dir=False), name="static")
     return http

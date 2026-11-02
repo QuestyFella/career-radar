@@ -12,7 +12,7 @@ import re
 import threading
 from pathlib import Path
 
-from . import config, regions
+from . import config, regions, theme
 
 DEFAULT_SCHEDULE = {
     "enabled": True,
@@ -25,6 +25,7 @@ DEFAULT_SCHEDULE = {
     "discovery_budget_minutes": 15,
 }
 _TIME = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
+DEFAULT_APPEARANCE = {"accent": ""}
 _lock = threading.RLock()
 
 
@@ -92,6 +93,19 @@ def clean_region(value, base=None):
     return cleaned
 
 
+def clean_appearance(value, base=None):
+    """Validate the accent color; an empty string keeps the built-in theme."""
+    if value is None:
+        return dict(base or DEFAULT_APPEARANCE)
+    if not isinstance(value, dict):
+        raise SettingsError("appearance: send an object with an accent color")
+    try:
+        accent = theme.clean_accent(value.get("accent", (base or DEFAULT_APPEARANCE).get("accent")))
+    except ValueError as exc:
+        raise SettingsError(str(exc)) from None
+    return {"accent": accent}
+
+
 def load(data=None):
     raw = config.read_json(_path(config.SETTINGS_FILE, data), {})
     raw = raw if isinstance(raw, dict) else {}
@@ -104,11 +118,15 @@ def load(data=None):
         region = clean_region(raw.get("region"))
     except SettingsError:
         region = dict(regions.DEFAULT_REGION, terms=[])
+    try:
+        appearance = clean_appearance(raw.get("appearance"))
+    except SettingsError:
+        appearance = dict(DEFAULT_APPEARANCE)
     provider = str(llm.get("provider") or os.environ.get("CAREER_RADAR_LLM_PROVIDER") or "")
     model = str(llm.get("model") or os.environ.get("CAREER_RADAR_LLM_MODEL") or "")
     base_url = str(llm.get("base_url") or os.environ.get("CAREER_RADAR_LLM_BASE_URL") or "")
     return {"llm": {"provider": provider, "model": model, "base_url": base_url}, "schedule": schedule,
-            "region": region}
+            "region": region, "appearance": appearance}
 
 
 def save(changes, data=None):
@@ -129,6 +147,8 @@ def save(changes, data=None):
             current["schedule"] = clean_schedule(changes["schedule"], current["schedule"])
         if "region" in changes and changes["region"] is not None:
             current["region"] = clean_region(changes["region"], current["region"])
+        if "appearance" in changes and changes["appearance"] is not None:
+            current["appearance"] = clean_appearance(changes["appearance"], current["appearance"])
         config.write_json(_path(config.SETTINGS_FILE, data), current)
         return current
 

@@ -6,6 +6,8 @@
   const STATUSES = new Set(['new', 'saved', 'applied', 'dismissed']);
   const SORTS = new Set(['priority', 'newest', 'deadline']);
   const DEFAULT_TIMEZONE = 'America/Toronto';
+  const DEFAULT_ACCENT = '#236b53';
+  const ACCENT_PATTERN = /^#[0-9a-f]{6}$/i;
   const numberFormat = new Intl.NumberFormat('en-CA');
 
   function safeHttpUrl(value) {
@@ -481,7 +483,7 @@
       candidates: [], checkingBoards: false, addingSearch: false,
       profile: null, resume: null, lastUpload: null, profileLoaded: false, profileDirty: false, profileBusy: false, uploading: false, chips: {}, recordCounter: 0,
       discovery: null, discoveryTimer: null, discoveryBusy: false,
-      settings: null, llmDirty: false, scheduleDirty: false, regionDirty: false, regionBusy: false, llmBusy: false, modelsBusy: false, modelsProvider: null, scheduleBusy: false,
+      settings: null, llmDirty: false, scheduleDirty: false, regionDirty: false, regionBusy: false, appearanceDirty: false, appearanceBusy: false, llmBusy: false, modelsBusy: false, modelsProvider: null, scheduleBusy: false,
       codexLogin: null, codexTimer: null, codexBusy: false, timeCounter: 0,
       confirmResolve: null, confirmOpener: null
     };
@@ -2280,11 +2282,66 @@
       }
     }
 
+    function appearanceColor() {
+      const value = String($('appearance-color').value || '').trim().toLowerCase();
+      return ACCENT_PATTERN.test(value) ? value : DEFAULT_ACCENT;
+    }
+
+    function previewAppearance() {
+      const color = appearanceColor();
+      $('appearance-value').textContent = color;
+      for (const swatch of document.querySelectorAll('#appearance-presets [data-color]')) {
+        swatch.classList.toggle('is-selected', String(swatch.dataset.color || '').toLowerCase() === color);
+      }
+    }
+
+    function applyAppearance(appearance) {
+      const saved = appearance && typeof appearance.accent === 'string' && ACCENT_PATTERN.test(appearance.accent)
+        ? appearance.accent.toLowerCase() : '';
+      const color = saved || DEFAULT_ACCENT;
+      if (!state.appearanceDirty) $('appearance-color').value = color;
+      $('appearance-value').textContent = appearanceColor();
+      $('appearance-badge').textContent = saved ? 'Custom' : 'Default';
+      $('appearance-badge').className = `badge badge-${saved ? 'ok' : 'pending'}`;
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', saved ? color : '#1b302e');
+      previewAppearance();
+    }
+
+    function refreshTheme() {
+      const link = $('theme-css');
+      if (link) link.href = `/theme.css?v=${Date.now()}`;
+    }
+
+    async function saveAppearance(event, { reset = false } = {}) {
+      if (event) event.preventDefault();
+      if (state.appearanceBusy) return;
+      state.appearanceBusy = true;
+      setBusy($('appearance-save'), true, 'Saving…');
+      $('appearance-reset').disabled = true;
+      setStatus('appearance-form-status', 'Saving color…');
+      try {
+        const accent = reset ? '' : appearanceColor();
+        const data = await request('/api/settings', { method: 'PUT', body: { appearance: { accent } } });
+        state.appearanceDirty = false;
+        applySettings(data);
+        refreshTheme();
+        setStatus('appearance-form-status', reset ? 'Default color restored.' : 'Saved. Color applied.');
+      } catch (error) {
+        setStatus('appearance-form-status', `Not saved. ${errorText(error)}`, true);
+      } finally {
+        state.appearanceBusy = false;
+        setBusy($('appearance-save'), false);
+        $('appearance-reset').disabled = false;
+      }
+    }
+
     function applySettings(data) {
       state.settings = data;
       const version = plainText(data.version, 40);
       $('settings-version').textContent = `Career Radar${version ? ` ${version}` : ''} · open source, self-hosted`;
       if (!state.regionDirty) applyRegion(data.region);
+      if (!state.appearanceDirty) applyAppearance(data.appearance);
       if (!state.llmDirty) {
         renderProviderOptions();
         $('llm-model').value = plainText(data.llm && data.llm.model, 200);
@@ -2888,6 +2945,21 @@
       updateRegionFields();
       setStatus('region-form-status', 'Unsaved changes');
     });
+    $('appearance-form').addEventListener('submit', (event) => { void saveAppearance(event); });
+    $('appearance-color').addEventListener('input', () => {
+      state.appearanceDirty = true;
+      previewAppearance();
+      setStatus('appearance-form-status', 'Unsaved changes');
+    });
+    $('appearance-presets').addEventListener('click', (event) => {
+      const swatch = event.target.closest('[data-color]');
+      if (!swatch || state.appearanceBusy) return;
+      $('appearance-color').value = swatch.dataset.color;
+      state.appearanceDirty = true;
+      previewAppearance();
+      setStatus('appearance-form-status', 'Unsaved changes');
+    });
+    $('appearance-reset').addEventListener('click', () => { void saveAppearance(null, { reset: true }); });
     $('llm-form').addEventListener('submit', (event) => { void submitLlm(event); });
     $('llm-provider').addEventListener('change', () => {
       state.llmDirty = true;

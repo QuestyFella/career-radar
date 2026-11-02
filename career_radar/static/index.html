@@ -9,6 +9,7 @@
   <title>Career Radar — technical roles at every level, in your region</title>
   <link rel="icon" href="/static/radar.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/theme.css" id="theme-css">
   <script src="/static/app.js" defer></script>
 </head>
 <body>
@@ -337,6 +338,30 @@
         <label class="check-option"><input type="checkbox" id="region-remote"><span>Include remote roles with no country restriction</span></label>
         <p class="field-help">Role levels are set in your Profile. Select every level there to collect roles at any level.</p>
         <div class="form-actions"><button type="submit" class="button button-primary" id="region-save">Save region</button><span class="form-status" id="region-form-status" role="status" aria-live="polite"></span></div>
+      </form>
+
+      <form class="panel" id="appearance-form" aria-labelledby="appearance-heading" novalidate>
+        <div class="panel-heading"><h3 id="appearance-heading">Appearance</h3><span class="badge" id="appearance-badge">Default</span></div>
+        <p class="panel-help">Pick the portal’s accent color. Light shades are deepened automatically so links and buttons stay readable.</p>
+        <div class="field">
+          <label for="appearance-color">Accent color</label>
+          <div class="color-field">
+            <input type="color" class="color-input" id="appearance-color" value="#236b53" aria-describedby="appearance-help">
+            <output class="color-value" id="appearance-value">#236b53</output>
+            <div class="theme-presets" id="appearance-presets" aria-label="Preset accent colors">
+              <button type="button" class="theme-swatch swatch-forest" data-color="#236b53" aria-label="Forest green"></button>
+              <button type="button" class="theme-swatch swatch-ocean" data-color="#1f5f9e" aria-label="Ocean blue"></button>
+              <button type="button" class="theme-swatch swatch-plum" data-color="#6b3f8f" aria-label="Plum"></button>
+              <button type="button" class="theme-swatch swatch-ember" data-color="#a84b24" aria-label="Ember orange"></button>
+              <button type="button" class="theme-swatch swatch-rose" data-color="#9c3b5b" aria-label="Rose"></button>
+              <button type="button" class="theme-swatch swatch-gold" data-color="#8a6a1f" aria-label="Gold"></button>
+              <button type="button" class="theme-swatch swatch-slate" data-color="#475569" aria-label="Slate"></button>
+              <button type="button" class="theme-swatch swatch-ink" data-color="#1f2937" aria-label="Ink"></button>
+            </div>
+          </div>
+          <p class="field-help" id="appearance-help">Applies to buttons, links, highlights and the sidebar tint. Save to apply it everywhere.</p>
+        </div>
+        <div class="form-actions"><button type="submit" class="button button-primary" id="appearance-save">Save color</button><button type="button" class="button button-secondary" id="appearance-reset">Reset to default</button><span class="form-status" id="appearance-form-status" role="status" aria-live="polite"></span></div>
       </form>
 
       <form class="panel" id="llm-form" aria-labelledby="llm-heading" novalidate>

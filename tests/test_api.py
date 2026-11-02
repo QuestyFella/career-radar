@@ -30,6 +30,19 @@ def test_health_and_real_counts(tmp_path):
     assert c.get("/api/jobs").json()["total"] == 1
 
 
+def test_theme_css_serves_the_saved_accent(tmp_path):
+    from career_radar import settings
+    c = client(tmp_path)
+    default = c.get("/theme.css")
+    assert default.status_code == 200
+    assert default.headers["content-type"].startswith("text/css")
+    assert "--accent:" not in default.text
+    settings.save({"appearance": {"accent": "#1f5f9e"}}, tmp_path)
+    themed = c.get("/theme.css").text
+    assert "--accent: hsl(" in themed and "--sidebar: hsl(" in themed
+    assert c.get("/api/settings").json()["appearance"]["accent"] == "#1f5f9e"
+
+
 def test_region_and_level_preferences_filter_the_feed(tmp_path):
     from career_radar import profile, settings
     db = tmp_path / "api-test.db"
