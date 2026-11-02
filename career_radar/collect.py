@@ -6,7 +6,7 @@ import fcntl
 import json
 import os
 import time
-from . import config, core
+from . import config, core, regions
 from . import registry as _registry
 ATS_TYPES = {"greenhouse", "lever", "ashby"}
 DISCOVERED_FILE = config.DISCOVERED_FILE
@@ -26,7 +26,7 @@ def fetch_source(source):
     return fetch(source)
 
 
-def _record(db, source, future, results, new_ids):
+def _record(db, source, future, results, new_ids, region, levels):
     """Persist one finished source fetch and its health; never raises."""
     coverage = str(source.get("coverage") or source.get("coverage_note") or "").lower()
     status = "partial" if source.get("partial") or any(s in coverage for s in ("limited", "sample", "capped", "bounded")) else "ok"
@@ -49,12 +49,12 @@ def _record(db, source, future, results, new_ids):
             row.setdefault("source_id", source["id"])
             row.setdefault("source", source["name"])
             row.setdefault("source_type", source["type"])
-        imported = core.upsert_jobs(db, rows)
+        imported = core.upsert_jobs(db, rows, region=region, levels=levels)
         new_ids.update(imported["new_ids"])
         if status == "ok" and source["type"] in ATS_TYPES:
             identifiers = {str(row.get("source_job_id") or core.canonical_url(row.get("url")) or "") for row in rows}
             core.reconcile_source(db, source["id"], identifiers)
-        matched_active = sum(bool((j := core.normalize_job(row)) and j["active"]) for row in rows)
+        matched_active = sum(bool((j := core.normalize_job(row, region=region, levels=levels)) and j["active"]) for row in rows)
         core.record_source(db, source, status=status, raw_count=len(rows), matched_count=matched_active, error=error)
         results.append({"id": source["id"], "name": source["name"], "status": status,
                         "raw": len(rows), "matched": matched_active, "new": imported["new"], "error": error})
@@ -64,12 +64,14 @@ def _record(db, source, future, results, new_ids):
         results.append({"id": source["id"], "name": source["name"], "status": "error", "raw": 0, "matched": 0, "error": error})
 
 
-def run_collection(db=None, registry=None, fetcher=None, workers=6, max_seconds=None):
+def run_collection(db=None, registry=None, fetcher=None, workers=6, max_seconds=None, region=None, levels=None):
     """Collect every source. With max_seconds, sources not yet started when the budget runs
     out are skipped as "deferred": their existing jobs stay untouched (no reconciliation),
     and the least recently checked sources go first next time, so all sources rotate."""
     db = Path(db or config.db_path())
     db.parent.mkdir(parents=True, exist_ok=True)
+    region = regions.normalize_region(region)
+    levels = tuple(levels) if levels else core.EARLY_LEVELS
     full_registry = registry is None  # only a full-registry run may retire removed sources
     registry = load_registry() if registry is None else registry
     seen = set()
@@ -118,18 +120,23 @@ def run_collection(db=None, registry=None, fetcher=None, workers=6, max_seconds=
                 due.sort(key=lambda s: core.parsed_date(previous.get(s["id"], {}).get("last_checked")) or started - timedelta(days=36500))
             queue, pending = iter(due), {}
 
+            def prepared(source):
+                result = regions.source_filters(source, region)
+                result["search_levels"] = list(levels)
+                return result
+
             def fill():
                 while len(pending) < workers * 2 and (deadline is None or time.monotonic() < deadline):
                     source = next(queue, None)
                     if source is None:
                         return
-                    pending[pool.submit(fetcher, source)] = source
+                    pending[pool.submit(fetcher, prepared(source))] = source
 
             fill()
             while pending:
                 done, _ = wait(pending, return_when=FIRST_COMPLETED)
                 for future in done:
-                    _record(db, pending.pop(future), future, results, new_ids)
+                    _record(db, pending.pop(future), future, results, new_ids, region, levels)
                 fill()
             for source in queue:  # Budget exhausted before these started.
                 prior = previous.get(source["id"], {})

@@ -9,6 +9,7 @@ import logging
 import os
 import threading
 import time
+from collections import Counter
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
@@ -61,6 +62,7 @@ class SettingsUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     llm: dict | None = None
     schedule: dict | None = None
+    region: dict | None = None
 
 
 class SecretUpdate(BaseModel):
@@ -173,9 +175,15 @@ def _install_middleware(http, password, host_allowed):
 
 
 def _matcher(data):
-    from . import profile as profile_module
+    from . import profile as profile_module, settings
     from .ranking import Matcher
-    return Matcher(profile_module.load_profile(data))
+    return Matcher(profile_module.load_profile(data), region=settings.load(data)["region"])
+
+
+def _preferences(data):
+    """The region and role levels collection and the feed should honour."""
+    from . import profile as profile_module, settings
+    return settings.load(data)["region"], profile_module.load_profile(data)["levels"]
 
 
 def _install_job_routes(http, db, data, refresh_callback):
@@ -196,10 +204,12 @@ def _install_job_routes(http, db, data, refresh_callback):
              page_size: int = Query(30, ge=1, le=250), priority_only: bool = False, include_closed: bool = False):
         now = core.utcnow()
         matcher = _matcher(data)
+        region, levels = _preferences(data)
         # Filter without paging, then rank by the profile, then page: ranking must see every row.
         result = core.list_jobs(db, q=q, level=level, category=category, location=location, status=status,
                                 sort="newest" if sort == "priority" else sort, deadline_days=deadline_days,
-                                page=1, page_size=250, include_closed=include_closed, now=now, unpaged=True)
+                                page=1, page_size=250, include_closed=include_closed, now=now, unpaged=True,
+                                region=region, levels=levels)
         rows = ranked(result["items"], matcher, now)
         if priority_only:
             rows = [j for j in rows if j["match"]["priority"]]
@@ -227,13 +237,26 @@ def _install_job_routes(http, db, data, refresh_callback):
 
     @http.get("/api/stats")
     def statistics():
-        from . import settings
+        from . import settings, regions
         matcher = _matcher(data)
         now = core.utcnow()
+        region, levels = _preferences(data)
         result = core.stats(db, now)
         active = [j for j in core.all_jobs(db) if j["active"] and j["status"] != "dismissed"
+                  and (not levels or j.get("level") in levels)
+                  and regions.matches(j.get("location"), region, j.get("country_hint"))
                   and (not j.get("deadline") or core.parsed_date(j["deadline"]) > now)]
         result["priority"] = sum(bool(matcher.score(j)["priority"]) for j in active) if matcher.active else 0
+        result["total"] = len(active)
+        result["new_today"] = sum(core.parsed_date(j["first_seen"]).astimezone(core.TORONTO).date() == now.astimezone(core.TORONTO).date() for j in active)
+        result["closing_soon"] = sum(bool(j.get("deadline") and now < core.parsed_date(j["deadline"]) <= now + timedelta(days=7)) for j in active)
+        result["saved"] = sum(j["status"] == "saved" for j in active)
+        result["applied"] = sum(j["status"] == "applied" for j in active)
+        def counts(key):
+            return [{"name": k, "count": v} for k, v in sorted(Counter(j.get(key) for j in active).items())]
+        result["categories"] = counts("category")
+        result["levels"] = counts("level")
+        result["location_counts"] = counts("location")
         result["profile_set"] = bool(matcher.active)
         result["priority_terms"] = list(matcher.terms)
         upcoming = getattr(http.state, "scheduler", None)
@@ -246,17 +269,25 @@ def _install_job_routes(http, db, data, refresh_callback):
 
     @http.get("/api/deadlines")
     def deadlines():
+        from . import regions
         now = core.utcnow()
+        region, levels = _preferences(data)
         items = [j for j in core.all_jobs(db) if j["active"] and j["status"] not in {"applied", "dismissed"}
+                 and (not levels or j.get("level") in levels)
+                 and regions.matches(j.get("location"), region, j.get("country_hint"))
                  and j.get("deadline") and now <= core.parsed_date(j["deadline"]) <= now + timedelta(days=30)]
         return {"items": sorted(items, key=lambda j: j["deadline"])}
 
     @http.get("/api/meta")
     def metadata():
-        from . import settings
-        schedule = settings.load(data)["schedule"]
+        from . import settings, regions
+        current = settings.load(data)
+        schedule = current["schedule"]
+        region = current["region"]
+        _, levels = _preferences(data)
         return {"name": "Career Radar", "version": __version__,
-                "scope": "Canadian internships, co-ops, new-grad and junior technical roles",
+                "scope": "Technical roles at every level, filtered to your region",
+                "region": region, "levels": list(levels),
                 "timezone": settings.timezone_name(), "collection_times": schedule["collect_times"],
                 "application_automation": False,
                 "eligibility_note": "Potential matches, not guaranteed eligibility. Confirm requirements, work authorization and graduation dates.",
@@ -295,8 +326,14 @@ def _install_job_routes(http, db, data, refresh_callback):
         writer.writeheader()
         now = core.utcnow()
         matcher = _matcher(data)
+        region, levels = _preferences(data)
+        from . import regions
         for j in core.all_jobs(db):
             if not _job_is_active(j, now) or j["status"] == "dismissed":
+                continue
+            if levels and j.get("level") not in levels:
+                continue
+            if not regions.matches(j.get("location"), region, j.get("country_hint")):
                 continue
             j = matcher.apply(j)
             row = {}
@@ -440,9 +477,13 @@ def _install_discovery_routes(http, db, data):
 
     @http.get("/api/discovery")
     def discovery_status():
+        from . import settings, regions
         result = discover.status(data)
         sched = scheduler()
         result.pop("by_type", None)
+        region = settings.load(data)["region"]
+        result["region"] = region
+        result["region_label"] = regions.label(region)
         result["running"] = bool(sched and sched.is_running("discovery"))
         result["last_run"] = core.get_meta(db, "last_discovery")
         result["scout"] = {"available": services.llm_configured(data),
@@ -467,7 +508,7 @@ def _install_discovery_routes(http, db, data):
 
 
 def _settings_payload(http, data):
-    from . import llm, services, settings
+    from . import llm, regions, services, settings
     current = settings.load(data)
     providers = [{"id": p.id, "label": p.label, "auth": p.auth, "key_env": p.key_env, "default_model": p.default_model,
                   "needs_base_url": p.needs_base_url, "docs_url": p.docs_url, "notes": p.notes}
@@ -480,6 +521,7 @@ def _settings_payload(http, data):
     return {"version": __version__, "timezone": settings.timezone_name(),
             "llm": current["llm"] | {"configured": services.llm_configured(data)},
             "providers": providers, "secrets": settings.secret_status(data), "codex": codex,
+            "region": current["region"], "region_options": regions.catalog(),
             "schedule": current["schedule"], "schedule_status": sched.status() if sched else None}
 
 

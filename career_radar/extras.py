@@ -31,6 +31,7 @@ from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
 
 import httpx
 from bs4 import BeautifulSoup
+from . import regions
 from .url_safety import UnsafeURL, normalize_public_url, is_public_ip
 from .deadlines import explicit_deadline as _shared_explicit_deadline, parse_structured_deadline
 from .bounded_http import ResponseBoundError, read_bounded
@@ -344,12 +345,19 @@ def _deadline(row: dict, value: str | None, evidence: str | None, source_url: st
         row.update(deadline=value, deadline_evidence=evidence, deadline_source_url=source_url or row["url"])
 
 
+def _in_source_region(source: dict, job: dict) -> bool:
+    search_region = source.get("search_region")
+    if search_region is not None:
+        return regions.matches(job.get("location"), search_region, job.get("country_hint"))
+    return not source.get("canada_only") or job.get("country_hint") == "CA" or bool(CANADA_RE.search(str(job.get("location") or "")))
+
+
 def _finish(source: dict, jobs: list[dict]) -> list[dict]:
     result, seen = [], set()
     for job in jobs:
         if job.get("is_closed") and not source.get("include_closed", False):
             continue
-        if source.get("canada_only") and job.get("country_hint") != "CA" and not CANADA_RE.search(job["location"]):
+        if not _in_source_region(source, job):
             continue
         key = (job["source_job_id"], job["url"], job["location"])
         if key not in seen:
@@ -398,7 +406,7 @@ def _fetch_simplify(source: dict) -> list[dict]:
         if not isinstance(locations, list) or not all(isinstance(v, str) for v in locations):
             raise SourceError("Simplify schema: locations must be a string list")
         location = "; ".join(locations)
-        if source.get("canada_only") and not CANADA_RE.search(location):
+        if not _in_source_region(source, {"location": location}):
             continue
         terms = item.get("terms", [])
         if not isinstance(terms, list):
@@ -425,7 +433,7 @@ def _fetch_frogg(source: dict) -> list[dict]:
         if status == "closed" and not source.get("include_closed"):
             continue
         location = item.get("location", "")
-        if source.get("canada_only") and not CANADA_RE.search(location):
+        if not _in_source_region(source, {"location": location}):
             continue
         term = item.get("term") or "Unspecified"
         jobs.append(_raw(source, title=item.get("role"), company=item.get("company"), location=location,
@@ -438,6 +446,7 @@ def _fetch_frogg(source: dict) -> list[dict]:
 
 
 def _linkedin_cards(text: str, source: dict, first_page: bool) -> list[dict]:
+    from .profile import includes_all_levels
     soup = _soup(text)
     cards = soup.select('[data-entity-urn^="urn:li:jobPosting:"], .base-search-card')
     if not cards:
@@ -470,20 +479,29 @@ def _linkedin_cards(text: str, source: dict, first_page: bool) -> list[dict]:
         row = _raw(source, title=title.get_text(), company=company.get_text(), location=location.get_text(),
                    url=public_url, job_id=job_id, posted_at=posted.get("datetime") if posted else None,
                    details_fetched=False)
-        row["level_hint"] = row["level_hint"] or "entry_level"
-        row["level_evidence"] = "LinkedIn public search f_E=1,2 (internship/entry-level); index label, not employer verification"
+        if includes_all_levels(source.get("search_levels")):
+            row["level_evidence"] = "LinkedIn public search across all experience levels; index label, not employer verification"
+        else:
+            row["level_hint"] = row["level_hint"] or "entry_level"
+            row["level_evidence"] = "LinkedIn public search f_E=1,2 (internship/entry-level); index label, not employer verification"
         jobs.append(row)
     return jobs
 
 
 def _fetch_linkedin(source: dict) -> list[dict]:
+    from .profile import includes_all_levels
     jobs, seen = [], set()
     max_pages = _cap(source, "max_pages", 3, 10)
     detail_limit = _cap(source, "detail_limit", 0, 50)
+    region = regions.normalize_region(source.get("search_region") or regions.DEFAULT_REGION)
+    location = source.get("location") or regions.label(region)
+    params_base = {"location": location}
+    if not includes_all_levels(source.get("search_levels")):
+        params_base["f_E"] = "1,2"
     offset, capped = 0, True
     try:
         for page in range(max_pages):
-            params = {"keywords": source.get("keywords", "software"), "location": "Canada", "f_E": "1,2",
+            params = {"keywords": source.get("keywords", "software"), **params_base,
                       "sortBy": "DD", "start": offset, "f_TPR": source.get("time_filter", "r2592000")}
             response = _request("GET", source["url"], params=params)
             rows = _linkedin_cards(response.text, source, first_page=page == 0)
@@ -513,12 +531,31 @@ def _fetch_linkedin(source: dict) -> list[dict]:
 
 
 def _fetch_muse(source: dict) -> list[dict]:
+    from .profile import includes_all_levels
     jobs, fetched, total, page_count = [], 0, None, None
     max_pages = _cap(source, "max_pages", 20, 50)
+    region = regions.normalize_region(source.get("search_region") or regions.DEFAULT_REGION)
     try:
         for page in range(max_pages):
-            params = {"page": page, "level": source.get("levels", ["Entry Level", "Internship"]),
-                      "location": source.get("locations", ["Canada"]), "descending": "true"}
+            params = {"page": page, "descending": "true"}
+            if source.get("search_region") is not None:
+                # The user's saved region and levels override Canada-specific built-in filters.
+                if not regions.is_global(region):
+                    params["location"] = [regions.label(region)]
+                params["level"] = (["Internship", "Entry Level", "Mid Level", "Senior Level"]
+                                   if includes_all_levels(source.get("search_levels"))
+                                   else ["Entry Level", "Internship"])
+            else:
+                if source.get("levels") is not None:
+                    params["level"] = source["levels"]
+                elif includes_all_levels(source.get("search_levels")):
+                    params["level"] = ["Internship", "Entry Level", "Mid Level", "Senior Level"]
+                else:
+                    params["level"] = ["Entry Level", "Internship"]
+                if source.get("locations") is not None:
+                    params["location"] = source["locations"]
+                elif not regions.is_global(region):
+                    params["location"] = [regions.label(region)]
             data = _json_response("GET", source["url"], params=params)
             rows = _list(data, "results")
             total = _integer(data.get("total"), "total")
@@ -534,7 +571,7 @@ def _fetch_muse(source: dict) -> list[dict]:
                 row = _raw(source, title=item.get("name"), company=item.get("company", {}).get("name"), location=location,
                            url=item.get("refs", {}).get("landing_page"), job_id=item.get("id"),
                            description=item.get("contents"), posted_at=item.get("publication_date"))
-                row["level_hint"] = _hint(row["title"]) or ("internship" if "Internship" in levels else "entry_level" if "Entry Level" in levels else None)
+                row["level_hint"] = _hint(row["title"]) or ("internship" if "Internship" in levels else "entry_level" if "Entry Level" in levels else "mid_level" if "Mid Level" in levels else "senior_level" if "Senior Level" in levels else None)
                 jobs.append(row)
             if page + 1 >= page_count:
                 if fetched != total:
@@ -751,14 +788,16 @@ def _workday_facets(data: dict, source: dict) -> dict:
     return applied
 
 
-def _detail_order(rows: list[dict]) -> list[int]:
+def _detail_order(rows: list[dict], source: dict | None = None) -> list[int]:
     """Indexes of rows whose titles can still match, early-career titles first.
 
     A title that fails core.title_could_match is rejected whatever its description
     says, so its detail request would be wasted."""
     from .core import detail_priority, title_could_match
+    from .profile import includes_all_levels
 
-    picks = [index for index, row in enumerate(rows) if title_could_match(row.get("title"))]
+    all_levels = includes_all_levels((source or {}).get("search_levels"))
+    picks = [index for index, row in enumerate(rows) if title_could_match(row.get("title"), all_levels)]
     return sorted(picks, key=lambda index: detail_priority(rows[index]["title"]))
 
 
@@ -821,7 +860,7 @@ def _fetch_workday(source: dict) -> list[dict]:
                 break
         else:
             capped = True
-        wanted = _detail_order(jobs)
+        wanted = _detail_order(jobs, source)
         for index in wanted[:detail_limit]:
             row, path = jobs[index], paths[index]
             detail = _json_response("GET", endpoint + path)
@@ -1092,11 +1131,14 @@ def _fetch_smartrecruiters(source: dict) -> list[dict]:
     page_size = _cap(source, "page_size", 100, 100)
     max_pages = _cap(source, "max_pages", 20, 50)
     detail_limit = _cap(source, "detail_limit", 150, 300)
-    country = str(source.get("country_code", "ca")).lower()
+    country = str(source.get("country_code") or ("" if source.get("search_region") is not None else "ca")).lower()
     rows, offset, total = [], 0, None
     try:
         for _ in range(max_pages):
-            data = _json_response("GET", endpoint, params={"limit": page_size, "offset": offset, "country": country})
+            params = {"limit": page_size, "offset": offset}
+            if country:
+                params["country"] = country
+            data = _json_response("GET", endpoint, params=params)
             items = _list(data, "content")
             found = _integer(data.get("totalFound"), "totalFound")
             total = found if total is None else total
@@ -1120,7 +1162,7 @@ def _fetch_smartrecruiters(source: dict) -> list[dict]:
                 break
         if offset < (total or 0):
             raise SourceTruncated(f"SmartRecruiters snapshot incomplete: {offset}/{total} postings", rows)
-        wanted = _detail_order(rows)
+        wanted = _detail_order(rows, source)
         for index in wanted[:detail_limit]:
             row = rows[index]
             detail = _json_response("GET", f"{endpoint}/{row['source_job_id']}")
@@ -1220,8 +1262,7 @@ def _fetch_bamboohr(source: dict) -> list[dict]:
                        location=location, url=f"{origin}/{identity}", job_id=identity, verification="direct",
                        employment_type=item.get("employmentStatusLabel"), details_fetched=False)
             rows.append(_country_hint(row, ats.get("country")))
-        relevant = [i for i in _detail_order(rows) if not source.get("canada_only") or rows[i].get("country_hint") == "CA"
-                    or CANADA_RE.search(rows[i]["location"])]
+        relevant = [i for i in _detail_order(rows, source) if _in_source_region(source, rows[i])]
         for index in relevant[:detail_limit]:
             row = rows[index]
             detail = _json_response("GET", f"{origin}/{row['source_job_id']}/detail")

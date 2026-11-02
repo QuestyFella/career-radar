@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const LEVELS = Object.freeze({ internship: 'Internship', co_op: 'Co-op', new_grad: 'New grad', entry_level: 'Entry level' });
+  const LEVELS = Object.freeze({ internship: 'Internship', co_op: 'Co-op', new_grad: 'New grad', entry_level: 'Entry level', mid_level: 'Mid level', senior_level: 'Senior level' });
   const STATUSES = new Set(['new', 'saved', 'applied', 'dismissed']);
   const SORTS = new Set(['priority', 'newest', 'deadline']);
   const DEFAULT_TIMEZONE = 'America/Toronto';
@@ -385,8 +385,8 @@
   }
 
   const CANDIDATE_STATES = Object.freeze({
-    verified: { label: 'Verified', tone: 'ok', canAdd: true, text: 'Lists current Canadian technical roles. Ready to add.' },
-    no_canada_tech: { label: 'No Canadian tech roles now', tone: 'warning', canAdd: true, text: 'The board works, but it has no current Canadian technical postings. You can still add it; it is checked on every collection.' },
+    verified: { label: 'Verified', tone: 'ok', canAdd: true, text: 'Lists current technical roles in your region. Ready to add.' },
+    no_canada_tech: { label: 'No matching tech roles now', tone: 'warning', canAdd: true, text: 'The board works, but it has no current technical postings in your region. You can still add it; it is checked on every collection.' },
     error: { label: 'Check failed', tone: 'error', canAdd: true, text: 'The board could not be read just now. It may be temporarily unavailable. You can add it anyway; it is retried on every collection.' },
     not_found: { label: 'Not found', tone: 'error', canAdd: false, text: 'No public job board was found at this address. Compare the company name in the URL with the employer’s careers page.' },
     excluded: { label: 'Excluded', tone: 'pending', canAdd: false, text: 'This looks like a job aggregator, a crowd-work marketplace or a test board, so Career Radar does not monitor it.' },
@@ -481,7 +481,7 @@
       candidates: [], checkingBoards: false, addingSearch: false,
       profile: null, resume: null, lastUpload: null, profileLoaded: false, profileDirty: false, profileBusy: false, uploading: false, chips: {}, recordCounter: 0,
       discovery: null, discoveryTimer: null, discoveryBusy: false,
-      settings: null, llmDirty: false, scheduleDirty: false, llmBusy: false, modelsBusy: false, modelsProvider: null, scheduleBusy: false,
+      settings: null, llmDirty: false, scheduleDirty: false, regionDirty: false, regionBusy: false, llmBusy: false, modelsBusy: false, modelsProvider: null, scheduleBusy: false,
       codexLogin: null, codexTimer: null, codexBusy: false, timeCounter: 0,
       confirmResolve: null, confirmOpener: null
     };
@@ -493,7 +493,7 @@
       sources: { title: 'Sources', subtitle: 'Know what is working, what is limited, and add the boards you care about.' },
       profile: { title: 'Profile', subtitle: 'Tell your radar what you are looking for. Ranking follows your profile.' },
       discovery: { title: 'Discovery', subtitle: 'New employer boards, verified before they join your radar.' },
-      settings: { title: 'Settings', subtitle: 'Language model, sign-in and the automatic schedule.' }
+      settings: { title: 'Settings', subtitle: 'Region, language model, sign-in and the automatic schedule.' }
     };
 
     // --- Shared DOM, formatting and request helpers ------------------------------------------
@@ -905,7 +905,7 @@
         main.append(heading, meta, tags);
         const reasons = strings(job.priority_reasons);
         // Lead with the most specific reason (interest, then skills), not the generic base reason.
-        const specific = reasons.filter((reason) => reason !== 'Canadian early-career opportunity');
+        const specific = reasons.filter((reason, index) => !(index === 0 && /opportunity$/i.test(reason)));
         const rank = (reason) => (/interest/i.test(reason) ? 0 : /skill/i.test(reason) ? 1 : 2);
         const lead = [...specific].sort((a, b) => rank(a) - rank(b))[0] || reasons[0];
         if (typeof job.priority_score === 'number' && Number.isFinite(job.priority_score)) {
@@ -965,7 +965,7 @@
         if (state.view === 'saved') { title = 'Make room for a good next step.'; text = 'Save a role that catches your eye. Your shortlist will be right here.'; }
         else if (state.view === 'applied') { title = 'Your progress starts here.'; text = 'After submitting an application, mark the role applied to keep track. Opening a listing never changes its status.'; }
         else if (state.view === 'dismissed') { title = 'Nothing dismissed.'; text = 'Roles you dismiss will appear here, so you can revisit or restore them.'; }
-        else { title = state.collectionRunning ? 'Your radar is searching.' : 'No opportunities collected yet.'; text = 'Real Canadian roles will appear after a successful source check. Sources shows which boards are available.'; action = state.collectionRunning ? 'Refreshing sources…' : 'Refresh sources'; kind = 'refresh'; }
+        else { title = state.collectionRunning ? 'Your radar is searching.' : 'No opportunities collected yet.'; text = 'Real roles in your region will appear after a successful source check. Sources shows which boards are available.'; action = state.collectionRunning ? 'Refreshing sources…' : 'Refresh sources'; kind = 'refresh'; }
       }
       $('empty-title').textContent = title;
       $('empty-text').textContent = text;
@@ -1328,7 +1328,8 @@
         head.append(title, element('span', `badge badge-${status.tone}`, status.label));
         item.append(head);
         if (candidate.status !== 'already_monitored' && !candidate.added) {
-          item.append(element('p', 'candidate-meta', `${sourceTypeLabel(candidate.type)} · ${plural(candidate.raw, 'listing')} · ${count(candidate.canada)} in Canada · ${count(candidate.matched)} match your radar now`));
+          const regionLabel = displayText(state.discovery && state.discovery.region_label, displayText(state.settings && state.settings.region && state.settings.region.label, 'your region'));
+          item.append(element('p', 'candidate-meta', `${sourceTypeLabel(candidate.type)} · ${plural(candidate.raw, 'listing')} · ${count(candidate.canada)} in ${regionLabel} · ${count(candidate.matched)} match your radar now`));
         } else item.append(element('p', 'candidate-meta', sourceTypeLabel(candidate.type)));
         if (status.text) item.append(element('p', 'candidate-text', status.text));
         const titles = strings(candidate.sample_titles).slice(0, 5);
@@ -1537,11 +1538,18 @@
       return [...$(`pf-${kind}-list`).children].map((row) => Object.fromEntries([...row.querySelectorAll('input[data-key]')].map((input) => [input.dataset.key, input.value])));
     }
 
+    function syncAnyLevel() {
+      const boxes = [...document.querySelectorAll('input[name="pf-level"]')];
+      $('pf-level-all').checked = boxes.length > 0 && boxes.every((input) => input.checked);
+    }
+
     function fillProfileForm() {
       const profile = state.profile || {};
       for (const key of ['name', 'email', 'location', 'headline', 'graduation']) $(`pf-${key}`).value = plainText(profile[key], key === 'headline' ? 300 : 200);
       const levels = new Set(Array.isArray(profile.levels) ? profile.levels : []);
       document.querySelectorAll('input[name="pf-level"]').forEach((input) => { input.checked = levels.has(input.value); });
+      syncAnyLevel();
+      updateScopeCopy();
       for (const key of Object.keys(CHIP_FIELDS)) {
         state.chips[key] = normalizeChips(profile[key], { max: PROFILE_LIST_CAPS[key], maxLength: key === 'links' ? 300 : 200 });
         $(`${CHIP_FIELDS[key]}-input`).value = '';
@@ -2018,7 +2026,7 @@
       if (summary.added.length) {
         const list = element('ul', 'run-list');
         for (const item of summary.added.slice(0, 25)) {
-          list.append(element('li', '', `${item.name} · ${sourceTypeLabel(item.type)} · ${count(item.canadaTech)} Canadian tech role${item.canadaTech === 1 ? '' : 's'}`));
+          list.append(element('li', '', `${item.name} · ${sourceTypeLabel(item.type)} · ${count(item.canadaTech)} tech role${item.canadaTech === 1 ? '' : 's'} in your region`));
         }
         nodes.push(element('h4', 'subheading', 'Added'), list);
         if (summary.addedCount > summary.added.length) nodes.push(element('p', 'muted', `And ${count(summary.addedCount - summary.added.length)} more.`));
@@ -2190,10 +2198,93 @@
       $('llm-configured').className = `badge badge-${configured ? 'ok' : spec ? 'warning' : 'pending'}`;
     }
 
+    function regionName(region) {
+      return displayText(region && region.label, 'Your region');
+    }
+
+    function updateScopeCopy() {
+      const region = regionName(state.settings && state.settings.region);
+      const levels = state.profile && Array.isArray(state.profile.levels) ? state.profile.levels : [];
+      const allLevels = LEVEL_ORDER.length > 0 && LEVEL_ORDER.every((level) => levels.includes(level));
+      $('page-eyebrow').textContent = `${region.toUpperCase()} / ${allLevels ? 'ANY LEVEL' : 'SELECTED LEVELS'}`;
+      $('scope-region').textContent = `${region}. ${allLevels ? 'Every level' : 'Selected levels'}, one radar.`;
+      $('footer-region').textContent = `${region} · Confirm requirements with the employer.`;
+    }
+
+    function fillRegionOptions(options) {
+      const select = $('region-select');
+      const rows = Array.isArray(options) ? options.filter((item) => item && typeof item.id === 'string' && typeof item.label === 'string') : [];
+      const fragment = document.createDocumentFragment();
+      for (const item of rows) {
+        const option = element('option', '', plainText(item.label, 80));
+        option.value = item.id;
+        fragment.append(option);
+      }
+      select.replaceChildren(fragment);
+    }
+
+    function updateRegionFields() {
+      const custom = $('region-select').value === 'custom';
+      $('region-label-field').hidden = !custom;
+      document.querySelectorAll('#region-form input, #region-form select').forEach((input) => { input.disabled = state.regionBusy; });
+    }
+
+    function applyRegion(region) {
+      const current = region && typeof region === 'object' ? region : { id: 'ca', label: 'Canada', terms: [], include_remote: true };
+      const select = $('region-select');
+      if (!select.options.length || !select.querySelector(`option[value="${CSS.escape(current.id || 'ca')}"]`)) {
+        fillRegionOptions((state.settings && state.settings.region_options) || []);
+        if (!select.querySelector(`option[value="${CSS.escape(current.id || 'ca')}"]`)) {
+          const option = element('option', '', regionName(current));
+          option.value = current.id || 'ca';
+          select.append(option);
+        }
+      }
+      if (!state.regionDirty) {
+        select.value = current.id || 'ca';
+        $('region-label').value = current.id === 'custom' ? plainText(current.label, 80) : '';
+        $('region-terms').value = (Array.isArray(current.terms) ? current.terms : []).join(', ');
+        $('region-remote').checked = current.include_remote !== false;
+      }
+      $('region-badge').textContent = regionName(current);
+      $('region-badge').className = 'badge badge-ok';
+      updateRegionFields();
+      updateScopeCopy();
+    }
+
+    async function saveRegion(event) {
+      event.preventDefault();
+      if (state.regionBusy) return;
+      const id = $('region-select').value;
+      const label = id === 'custom' ? plainText($('region-label').value, 80) : '';
+      if (id === 'custom' && !label) {
+        setStatus('region-form-status', 'Enter a name for your custom region.', true);
+        $('region-label').focus();
+        return;
+      }
+      const terms = $('region-terms').value.split(',').map((term) => plainText(term, 80)).filter(Boolean).slice(0, 40);
+      state.regionBusy = true;
+      setBusy($('region-save'), true, 'Saving…');
+      setStatus('region-form-status', 'Saving region…');
+      try {
+        const data = await request('/api/settings', { method: 'PUT', body: { region: { id, label, terms, include_remote: $('region-remote').checked } } });
+        state.regionDirty = false;
+        applySettings(data);
+        setStatus('region-form-status', 'Saved. New collection runs use this region.');
+      } catch (error) {
+        setStatus('region-form-status', `Not saved. ${errorText(error)}`, true);
+      } finally {
+        state.regionBusy = false;
+        setBusy($('region-save'), false);
+        updateRegionFields();
+      }
+    }
+
     function applySettings(data) {
       state.settings = data;
       const version = plainText(data.version, 40);
       $('settings-version').textContent = `Career Radar${version ? ` ${version}` : ''} · open source, self-hosted`;
+      if (!state.regionDirty) applyRegion(data.region);
       if (!state.llmDirty) {
         renderProviderOptions();
         $('llm-model').value = plainText(data.llm && data.llm.model, 200);
@@ -2703,7 +2794,12 @@
       if (event.target.matches('.chip-entry input')) return;
       markProfileDirty();
     });
-    $('profile-form').addEventListener('change', (event) => { if (event.target.name === 'pf-level') markProfileDirty(); });
+    $('profile-form').addEventListener('change', (event) => { if (event.target.name === 'pf-level') { syncAnyLevel(); markProfileDirty(); } });
+    $('pf-level-all').addEventListener('change', () => {
+      const all = $('pf-level-all').checked;
+      document.querySelectorAll('input[name="pf-level"]').forEach((input) => { input.checked = all; });
+      markProfileDirty();
+    });
     for (const [key, prefix] of Object.entries(CHIP_FIELDS)) {
       $(`${prefix}-add`).addEventListener('click', () => { addChips(key); $(`${prefix}-input`).focus(); });
       $(`${prefix}-input`).addEventListener('keydown', (event) => {
@@ -2785,6 +2881,13 @@
 
     // Settings
     $('settings-retry').addEventListener('click', () => { void loadSettings(); });
+    $('region-form').addEventListener('submit', (event) => { void saveRegion(event); });
+    $('region-form').addEventListener('input', () => { state.regionDirty = true; setStatus('region-form-status', 'Unsaved changes'); });
+    $('region-select').addEventListener('change', () => {
+      state.regionDirty = true;
+      updateRegionFields();
+      setStatus('region-form-status', 'Unsaved changes');
+    });
     $('llm-form').addEventListener('submit', (event) => { void submitLlm(event); });
     $('llm-provider').addEventListener('change', () => {
       state.llmDirty = true;

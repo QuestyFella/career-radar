@@ -4,7 +4,7 @@ Harvests employer job boards (Greenhouse, Lever, Ashby, Workday, SmartRecruiters
 Workable, Recruitee, BambooHR) from lead files written by research/scout agents and from
 employer links already stored in the board database. Every candidate is verified against
 its real public API with the production adapters; boards with at least one current
-Canadian technical posting are written to discovered_sources.json, which
+technical posting in the configured region are written to discovered_sources.json, which
 collect.load_registry() picks up automatically on the next collection.
 
 Read-only towards employers: public job-board endpoints only, at most six concurrent
@@ -32,6 +32,7 @@ from urllib.parse import urlsplit
 from . import collect
 from . import config
 from . import core
+from . import regions
 from . import registry
 SCHEMA_VERSION = 1
 WORKERS = 6
@@ -87,7 +88,7 @@ _WORKDAY_PRIVATE = re.compile(r"referr|internal|employee|alumni|colleague|associ
 # Production collection limits for discovered boards (keep twice-daily collection bounded).
 CAPS = {"workday": {"max_pages": 25, "detail_limit": 50}, "smartrecruiters": {"max_pages": 10, "detail_limit": 60},
         "bamboohr": {"detail_limit": 40}}
-# A probe only needs to prove the board works and has Canadian technical titles.
+# A probe only needs to prove the board works and has technical titles in the selected region.
 PROBE_CAPS = {"workday": {"max_pages": 3, "detail_limit": 2}, "smartrecruiters": {"max_pages": 2, "detail_limit": 2},
               "bamboohr": {"detail_limit": 2}}
 _DISCOVERY = "Added by Career Radar source discovery after a live public-API check."
@@ -325,9 +326,11 @@ def _unique_id(base, taken):
     return ident
 
 
-def build_source(cand, spelling, name=None, probe=False, taken=()):
+def build_source(cand, spelling, name=None, probe=False, taken=(), region=None):
     """A registry entry; probes omit `company` so adapters report the API's own name."""
     kind = cand["type"]
+    region = regions.normalize_region(region)
+    canada = regions.is_canada(region)
     placeholder = _pretty(cand.get("tenant") if kind == "workday" else spelling)
     name = name or placeholder
     if kind in {"greenhouse", "lever", "ashby"}:
@@ -343,30 +346,39 @@ def build_source(cand, spelling, name=None, probe=False, taken=()):
         wd = cand["wd"].most_common(1)[0][0] if cand.get("wd") else "wd3"
         tenant = cand["tenant"]
         source = {"type": kind, "tenant": tenant, "site": spelling, "url": f"https://{tenant}.{wd}.myworkdayjobs.com/{spelling}",
-                  "country": "Canada", "keywords": "", "canada_only": True}
+                  "keywords": ""}
+        if canada:
+            # The live Canada facet keeps the board small; other regions are filtered
+            # after collection, so no guessed facet value is stored.
+            source.update(country="Canada", canada_only=True)
         base = f"workday-{tenant}-{spelling}"
     elif kind == "smartrecruiters":
-        source = {"type": kind, "company_id": spelling, "url": f"https://jobs.smartrecruiters.com/{spelling}", "canada_only": True}
+        source = {"type": kind, "company_id": spelling, "url": f"https://jobs.smartrecruiters.com/{spelling}"}
+        if canada:
+            source["canada_only"] = True
         base = f"smartrecruiters-{spelling}"
     else:
         url = {"workable": f"https://apply.workable.com/{spelling}/", "recruitee": f"https://{spelling}.recruitee.com/",
                "bamboohr": f"https://{spelling}.bamboohr.com/careers"}[kind]
-        source = {"type": kind, "board": spelling, "url": url, "canada_only": True}
+        source = {"type": kind, "board": spelling, "url": url}
+        if canada:
+            source["canada_only"] = True
         base = f"{kind}-{spelling}"
     source.update(id=_unique_id(base, taken), name=name, coverage_note=NOTES[kind])
+    if not canada:
+        place = "worldwide" if regions.is_global(region) else region["label"]
+        note = source["coverage_note"].replace("filtered by its live Canada facet; ", "")
+        note = note.replace("postings in Canada", f"postings in {place}")
+        note = note.replace("Canadian technical titles", f"technical titles in {place}")
+        source["coverage_note"] = note.replace("Canadian", place).replace("Canada", place)
     if not probe:
         source["company"] = name
     source.update((PROBE_CAPS if probe else CAPS).get(kind, {}))
     return source
 
 
-def _canadian(row):
-    location = str(row.get("location") or "")
-    if core.CANADA_EXCLUDED.search(location):
-        return False
-    if core.canadian_options(location):
-        return True
-    return str(row.get("country_hint") or "").upper() in {"CA", "CAN", "CANADA"} and not core.foreign_location(location)
+def _in_region(row, region):
+    return regions.matches(row.get("location"), region, row.get("country_hint"))
 
 
 def _error_status(error):
@@ -419,15 +431,26 @@ def _excluded_result(cand, recheck, started, note="job aggregator or crowd-work 
             "seconds": round(time.monotonic() - started, 2), "recheck_id": recheck.get("id") if recheck else None}
 
 
-def probe_candidate(cand, fetcher):
+def probe_candidate(cand, fetcher, region=None, levels=None):
+    from .profile import includes_all_levels
+    region = regions.normalize_region(region)
+    all_levels = includes_all_levels(levels)
     started = time.monotonic()
     recheck = cand.get("recheck")
     if _DENIED.search(" ".join([cand["key"], *cand["names"], str((recheck or {}).get("name") or "")])):
         return _excluded_result(cand, recheck, started)
     if recheck:
-        attempts = [(next(iter(cand["spellings"]), None), dict(recheck, **PROBE_CAPS.get(recheck["type"], {})))]
+        probe_source = dict(recheck, **PROBE_CAPS.get(recheck["type"], {}))
+        probe_source = regions.source_filters(probe_source, region)
+        probe_source["search_levels"] = list(levels or core.EARLY_LEVELS)
+        attempts = [(next(iter(cand["spellings"]), None), probe_source)]
     else:
-        attempts = [(s, build_source(cand, s, probe=True)) for s, _ in cand["spellings"].most_common(3)]
+        attempts = []
+        for spelling, _ in cand["spellings"].most_common(3):
+            probe_source = build_source(cand, spelling, probe=True, region=region)
+            probe_source = regions.source_filters(probe_source, region)
+            probe_source["search_levels"] = list(levels or core.EARLY_LEVELS)
+            attempts.append((spelling, probe_source))
     rows, error, partial, spelling, source = [], None, False, None, None
     for spelling, source in attempts:
         try:
@@ -442,20 +465,21 @@ def probe_candidate(cand, fetcher):
     fake = sum(bool(_TEST_POSTING.search(str(row.get("title") or ""))) for row in rows)
     if len(rows) >= 3 and fake * 2 >= len(rows):
         return _excluded_result(cand, recheck, started, note="ATS test/sandbox tenant")
-    canada = [row for row in rows if _canadian(row)]
-    # Relevant = a Canadian title that itself names technical work and that the core could
-    # still accept (not senior/manager-only; not "Associate"/"Analyst"-only retail or bank titles).
-    tech = [row for row in canada if core.technical_title(str(row.get("title") or ""))]
+    canada = [row for row in rows if _in_region(row, region)]
+    # Relevant = a regional title that itself names technical work and that the core could
+    # still accept (not senior/manager-only unless all levels are enabled; not "Associate"/
+    # "Analyst"-only retail or bank titles).
+    tech = [row for row in canada if core.technical_title(str(row.get("title") or ""), all_levels)]
     matched = 0
     for row in canada:
         try:
-            job = core.normalize_job(row)
+            job = core.normalize_job(row, region=region, levels=levels)
         except Exception:  # A malformed row must not hide the rest of the board.
             job = None
         matched += bool(job and job.get("active"))
     healthy = error is None or partial
-    # A board qualifies when a Canadian title names technical work, or when the production
-    # rules already accept one of its Canadian postings (e.g. "Analyst" + a CS description).
+    # A board qualifies when a regional title names technical work, or when the production
+    # rules already accept one of its regional postings (e.g. "Analyst" + a CS description).
     status = "verified" if (tech or matched) and healthy else "no_canada_tech" if healthy else _error_status(error)
     result = {"key": cand["key"], "type": cand["type"], "spelling": spelling, "status": status, "raw": len(rows),
               "canada": len(canada), "tech": len(tech), "matched": matched, "error": None if healthy else error,
@@ -538,8 +562,14 @@ def _score(cand):
 
 
 def run(leads=(), db=None, root=None, fetcher=None, workers=WORKERS, max_seconds=None, limit=None, log=sys.stderr,
-        reverify=False):
+        reverify=False, region=None, levels=None):
     root = Path(root or config.data_dir())
+    if region is None:
+        from . import settings
+        region = settings.load(root)["region"]
+    if levels is None:
+        from .profile import load_profile
+        levels = load_profile(root)["levels"]
     state = config.discovery_dir(root)
     state.mkdir(parents=True, exist_ok=True)
     lock = (state / "discover.lock").open("a+")
@@ -549,13 +579,16 @@ def run(leads=(), db=None, root=None, fetcher=None, workers=WORKERS, max_seconds
         lock.close()
         return {"ok": True, "skipped": True, "reason": "Another discovery run is in progress."}
     try:
-        return _run(leads, db, root, state, fetcher or collect.fetch_source, workers, max_seconds, limit, log, reverify)
+        return _run(leads, db, root, state, fetcher or collect.fetch_source, workers, max_seconds, limit, log, reverify,
+                    region, levels)
     finally:
         fcntl.flock(lock, fcntl.LOCK_UN)
         lock.close()
 
 
-def _run(leads, db, root, state, fetcher, workers, max_seconds, limit, log, reverify=False):
+def _run(leads, db, root, state, fetcher, workers, max_seconds, limit, log, reverify=False, region=None, levels=None):
+    region = regions.normalize_region(region)
+    levels = tuple(levels or core.EARLY_LEVELS)
     started_wall, started = _now(), time.monotonic()
     deadline = started + max_seconds if max_seconds is not None else None
     cache = _load_json(state / "probe-cache.json", {})
@@ -641,7 +674,7 @@ def _run(leads, db, root, state, fetcher, workers, max_seconds, limit, log, reve
                                   "failures": 0 if result["status"] == "verified" else int(entry.get("failures", 0)) + 1,
                                   "name": result.get("name") or entry.get("name"), "candidate": _snapshot(cand)}
         if result["status"] == "verified":
-            source = build_source(cand, result["spelling"], result["name"], taken=taken)
+            source = build_source(cand, result["spelling"], result["name"], taken=taken, region=region)
             taken.add(source["id"])
             source.update(discovered=True, discovered_at=result["checked_at"], verified_at=result["checked_at"],
                           probe_raw_count=result["raw"], probe_canada_count=result["canada"],
@@ -657,7 +690,7 @@ def _run(leads, db, root, state, fetcher, workers, max_seconds, limit, log, reve
         ordered = sorted(discovered, key=lambda s: (str(s.get("name", "")).casefold(), s["id"]))
         _write_json(registry_path, {"schema_version": SCHEMA_VERSION, "generated_at": stamp,
                                     "method": ("discover.py: harvested leads and stored board links, verified by live public-API "
-                                               "probes with the production adapters; kept when a current Canadian technical "
+                                               "probes with the production adapters; kept when a current regional technical "
                                                "posting exists."),
                                     "sources": ordered})
         _write_json(state / "probe-cache.json", {"schema_version": SCHEMA_VERSION, "updated_at": stamp, "candidates": entries})
@@ -673,7 +706,7 @@ def _run(leads, db, root, state, fetcher, workers, max_seconds, limit, log, reve
                     cand = next(iterator, None)
                     if cand is None:
                         break
-                    pending[pool.submit(probe_candidate, cand, fetcher)] = cand
+                    pending[pool.submit(probe_candidate, cand, fetcher, region=region, levels=levels)] = cand
                 if not pending:
                     break
                 finished, _ = wait(pending, return_when=FIRST_COMPLETED)
@@ -714,15 +747,40 @@ def _run(leads, db, root, state, fetcher, workers, max_seconds, limit, log, reve
     return summary
 
 
-def focus(count=4, root=None):
+def _regional_focus(region):
+    """Scout themes for any region; Canada keeps its curated, city-specific list."""
+    if regions.is_canada(region):
+        return FOCUS
+    place = "worldwide" if regions.is_global(region) else regions.label(region)
+    return [
+        f"Technology employers headquartered in {place} with public job boards (Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable, Recruitee or BambooHR).",
+        f"Software, data, AI/ML, cloud and infrastructure companies hiring in {place}.",
+        f"Embedded, firmware, robotics, semiconductor and hardware employers in {place}.",
+        f"Fintech, banking, insurance, payments and investment firms with technology teams in {place}.",
+        f"Telecom, networking, cybersecurity and enterprise software companies with offices in {place}.",
+        f"Health tech, climate, energy, aerospace and deep-tech companies in {place}.",
+        f"Consulting, IT services, e-commerce, retail, logistics and supply-chain technology employers in {place}.",
+        f"Big tech and international software companies with engineering offices in {place}, including internships, new-grad and experienced roles.",
+        f"ATS sweep: site:job-boards.greenhouse.io, site:jobs.lever.co and site:jobs.ashbyhq.com searches combining {place} locations with software, data, embedded, robotics, intern, graduate and senior engineer.",
+        f"ATS sweep: site:myworkdayjobs.com, site:jobs.smartrecruiters.com, site:apply.workable.com, site:bamboohr.com and site:recruitee.com searches combining {place} locations with student, graduate, engineer and developer.",
+    ]
+
+
+def focus(count=4, root=None, region=None):
     """Next research themes for scout subagents, plus the list of boards to skip."""
     root = Path(root or config.data_dir())
+    if region is None:
+        from . import settings
+        region = settings.load(root)["region"]
+    region = regions.normalize_region(region)
+    themes_pool = _regional_focus(region)
     state = config.discovery_dir(root)
     state.mkdir(parents=True, exist_ok=True)
     rotation = _load_json(state / "focus-state.json", {})
     start = int(rotation.get("next", 0)) if isinstance(rotation, dict) else 0
-    themes = [FOCUS[(start + i) % len(FOCUS)] for i in range(count)]
-    _write_json(state / "focus-state.json", {"next": (start + count) % len(FOCUS), "updated_at": _now().isoformat()})
+    start %= len(themes_pool)
+    themes = [themes_pool[(start + i) % len(themes_pool)] for i in range(count)]
+    _write_json(state / "focus-state.json", {"next": (start + count) % len(themes_pool), "updated_at": _now().isoformat()})
     document = _load_json(root / collect.DISCOVERED_FILE, {})
     sources = _curated(root) + (document.get("sources", []) if isinstance(document, dict) else [])
     entries = _load_json(state / "probe-cache.json", {}).get("candidates", {})
@@ -737,7 +795,7 @@ def focus(count=4, root=None):
     leads.mkdir(parents=True, exist_ok=True)
     return {"themes": themes, "known_boards_file": str(state / "known-boards.txt"), "leads_dir": str(leads),
             "monitored_sources": len(sources), "candidates_already_checked": len(entries),
-            "known_unsupported_companies": len(unsupported),
+            "known_unsupported_companies": len(unsupported), "region": region, "region_label": region["label"],
             "today": _now().astimezone(core.TORONTO).date().isoformat()}
 
 

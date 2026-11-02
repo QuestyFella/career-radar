@@ -30,6 +30,32 @@ def test_health_and_real_counts(tmp_path):
     assert c.get("/api/jobs").json()["total"] == 1
 
 
+def test_region_and_level_preferences_filter_the_feed(tmp_path):
+    from career_radar import profile, settings
+    db = tmp_path / "api-test.db"
+    core.upsert_jobs(db, [{
+        "source_id": "fixture", "source": "Fixture", "source_type": "test", "source_job_id": "ca",
+        "title": "Junior Software Engineer", "company": "Maple Co", "location": "Toronto, ON",
+        "url": "https://example.com/jobs/ca", "description": "0-2 years experience", "verification": "direct"}],
+        region={"id": "ca"})
+    core.upsert_jobs(db, [{
+        "source_id": "fixture", "source": "Fixture", "source_type": "test", "source_job_id": "us",
+        "title": "Senior Software Engineer", "company": "Lone Star Co", "location": "Austin, TX",
+        "url": "https://example.com/jobs/us", "description": "6+ years of software engineering experience",
+        "verification": "direct"}],
+        region={"id": "us"}, levels=profile.ALL_LEVELS)
+    c = TestClient(create_app(db_path=db, refresh_callback=lambda: None))
+    assert c.get("/api/jobs").json()["total"] == 1
+
+    settings.save({"region": {"id": "us"}}, tmp_path)
+    assert c.get("/api/jobs").json()["total"] == 0
+    profile.save_profile(tmp_path, {"levels": list(profile.ALL_LEVELS)})
+    result = c.get("/api/jobs").json()
+    assert result["total"] == 1 and result["items"][0]["location"] == "Austin, TX"
+    assert c.get("/api/meta").json()["region"]["label"] == "United States"
+    assert c.get("/api/settings").json()["region"]["id"] == "us"
+
+
 def test_persistence_and_detail(tmp_path):
     c = client(tmp_path)
     job = plain(c.get("/api/jobs").json()["items"][0])

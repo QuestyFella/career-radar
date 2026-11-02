@@ -5,9 +5,9 @@
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)
 ![Docker](https://img.shields.io/badge/docker-compose-2496ED.svg)
 
-A self-hosted job radar for **Canadian internships, co-ops, new-grad and entry-level tech roles**.
-It collects postings straight from employers' public job boards, keeps only roles open to people in
-Canada, ranks them against your resume and interests, and finds new employer boards on its own.
+A self-hosted job radar for **technical roles at every level, in the region you choose**.
+It collects postings straight from employers' public job boards, keeps only roles in your
+region, ranks them against your resume and interests, and finds new employer boards on its own.
 
 ![Career Radar: ranked opportunities collected from public employer job boards](docs/screenshots/hero.png)
 
@@ -15,6 +15,12 @@ Canada, ranks them against your resume and interests, and finds new employer boa
 
 ## Features
 
+- **Your region, your radar.** Pick a country (Canada is the default), “Anywhere (global)”, or a
+  custom region with your own location keywords. Collection, discovery, ranking and the feed all
+  follow it. Unrestricted remote roles are included by default; remote roles tied to another
+  country are not.
+- **Any career level.** Internships, co-ops, new grad and entry level are selected by default.
+  Add mid-level and senior roles — or choose “Any level” — to collect experienced roles too.
 - **About 1,000 employer boards out of the box.** 96 built-in sources (Greenhouse, Lever, Ashby,
   Workday, LinkedIn public search, Job Bank Canada, Simplify and others) plus 990 boards verified by
   discovery (Workday, Greenhouse, Ashby, Lever, SmartRecruiters, BambooHR, Workable and Recruitee).
@@ -26,8 +32,8 @@ Canada, ranks them against your resume and interests, and finds new employer boa
   is added. Add LinkedIn or Job Bank keyword searches, disable any source, or remove a discovered
   board for good.
 - **Discovery.** Finds board links in collected postings and in lead files, verifies each one with
-  a live public-API check, and keeps the boards that currently list Canadian technical roles. It
-  re-checks them regularly and drops boards that go stale.
+  a live public-API check, and keeps the boards that currently list technical roles in your region.
+  It re-checks them regularly and drops boards that go stale.
 - **Optional LLM scout.** Asks your LLM to suggest employers by theme (aerospace, embedded, AI/ML,
   fintech, games and others). Suggestions are only leads: a board is added after the same live
   check.
@@ -44,7 +50,7 @@ Canada, ranks them against your resume and interests, and finds new employer boa
 ```mermaid
 flowchart LR
     boards["~1,000 public employer boards<br/>Greenhouse · Lever · Ashby · Workday · …"] --> collect[Collect]
-    collect --> filter["Keep: in Canada · early-career · technical"]
+    collect --> filter["Keep: your region · your levels · technical"]
     filter --> db[(SQLite)]
     resume["Your resume (PDF)"] --> profile[Profile]
     db --> rank["Rank against your profile"]
@@ -60,7 +66,7 @@ flowchart LR
 | Job details and match reasons | Profile, filled from your resume |
 |---|---|
 | ![Job details with match reasons](docs/screenshots/job-detail.png) | ![Profile editor](docs/screenshots/profile.png) |
-| **Sources and board health** | **Settings: LLM provider and schedule** |
+| **Sources and board health** | **Settings: region, LLM provider and schedule** |
 | ![Sources with board health](docs/screenshots/sources.png) | ![Settings](docs/screenshots/settings.png) |
 
 ## Quick start (Docker)
@@ -97,6 +103,11 @@ One-off jobs (handy for cron or debugging): `career-radar collect`, `career-rada
 ## Configuration
 
 Everything can be set in the web UI. Environment variables (see `.env.example`) override the UI.
+
+**Region** is in Settings: any country, “Anywhere (global)”, or a custom label plus comma-separated
+location keywords. **Role levels** are in Profile; select all six (or “Any level”) to collect
+experienced roles as well as early-career ones. Both choices apply to the next collection run;
+the feed hides stored jobs that no longer match.
 
 | Variable | Purpose |
 |---|---|
@@ -135,18 +146,21 @@ Every job starts at a neutral score. With a profile, the score becomes a 0–100
   learning, data, security, web, mobile, cloud, games, fintech, automotive, quantum, health,
   networking, or any free-text term);
 - your skills found in the posting;
-- preferred locations and role levels (internship, co-op, new grad, entry level);
+- preferred locations and role levels (internship, co-op, new grad, entry level, mid level or
+  senior level);
 - excluded words in the title, which push a job down.
 
 *Priority only* shows the jobs that match an interest or score 75 or higher.
 
 ## Scope and filters
 
-Career Radar keeps postings that are early-career (internship, co-op, new grad, junior/entry, or
-an explicitly low experience requirement), technical (software, data, AI/ML, embedded,
-electrical, IT, QA, product and related titles), and open in Canada (Canadian locations, or
-Canada-eligible remote roles). Senior roles, US-only roles and non-technical titles are dropped.
-Multi-country postings are kept only when they name a Canadian option.
+Career Radar keeps technical postings (software, data, AI/ML, embedded, electrical, IT, QA,
+product and related titles) that are located in your region, or that are unrestricted remote
+roles. The default region is Canada, with the four early-career levels selected. Choose another
+country, “Anywhere (global)” or a custom region in **Settings**; choose mid-level and senior
+roles — or “Any level” — in **Profile**. Roles outside your region or selected levels, non-technical
+titles and postings that require another country are dropped. Multi-country postings are kept when
+they name a location in your region.
 
 ## Sources and discovery
 
@@ -168,7 +182,7 @@ Supported board URLs:
 **Discovery** reads board links from collected postings and from any lead files you drop in
 `/data/leads/`. A lead file can be JSON, JSONL, CSV, Markdown or text containing board URLs.
 Discovery probes each new board through its public API with the same adapters collection uses,
-and adds it when it has a current Canadian technical posting. Discovered boards are re-verified
+and adds it when it has a current technical posting in your region. Discovered boards are re-verified
 every 30 days, and failing boards every night. Boards you remove are never re-added.
 
 ## Privacy and safety

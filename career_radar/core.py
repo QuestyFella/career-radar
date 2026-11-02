@@ -18,6 +18,7 @@ import sqlite3
 import unicodedata
 from dateutil import parser as dateparser
 import pycountry
+from . import regions
 from .url_safety import canonical_job_url
 from .deadlines import parse_published_deadline, parse_structured_deadline
 
@@ -100,6 +101,8 @@ CS_TEXT = re.compile(r"computer science|computer engineering|software engineerin
 SPACE = re.compile(r"aerospace|spacecraft|satellite|rocketry|rocket|flight software|avionics|Kepler|Telesat|MDA Space|GHGSat|NordSpace|Magellan|Pratt . Whitney|Bombardier|CAE\b|Honeywell", re.I)
 EMBEDDED = re.compile(r"embedded|firmware|robotics|avionics|flight software|flight control|\bGNC\b|\bRTOS\b|FPGA|autonomous|controls engineer", re.I)
 LEVEL_PATTERNS = [("co_op", r"\bco[ -]?op\b|\bcoop\b"), ("internship", r"\bintern(?:ship)?\b|\bstagiaire\b|\bstage\b|\bstudent\b"), ("new_grad", r"new[ -]?grad|new graduate|recent graduate|graduate program|graduate recruitment|early career|university grad|campus hire|202[6-9] graduate"), ("entry_level", r"\bjunior\b|\bjr\.?\b|entry[ -]level|\bassociate\b|\b(?:engineer|developer|analyst|specialist)\s+(?:I|1)\b")]
+EARLY_LEVELS = tuple(level for level, _ in LEVEL_PATTERNS)
+ALL_LEVELS = EARLY_LEVELS + ("mid_level", "senior_level")
 
 
 def utcnow():
@@ -380,31 +383,43 @@ _STRONG_TECH = re.compile(
     r"systems?\s+analyst|(?-i:\b(?:IT|AI|ML|GIS)\b)", re.I)
 
 
-def _title_excluded(title):
-    """Title-only exclusions shared by infer_level and the cheap fetch-time gate."""
-    if SENIOR.search(title):
+def _non_technical_title(title):
+    """Titles that are never technical whatever their description says."""
+    return bool(_NON_TECH_ALWAYS.search(title)
+                or (_NON_TECH_TITLE.search(title) and not _STRONG_TECH.search(title)))
+
+
+def _title_excluded(title, all_levels=False):
+    """Title-only exclusions shared by infer_level and the cheap fetch-time gate.
+
+    With ``all_levels`` the seniority and advanced-degree exclusions are lifted;
+    non-technical roles are still rejected.
+    """
+    if _non_technical_title(title):
         return True
-    if _NON_TECH_ALWAYS.search(title) or (_NON_TECH_TITLE.search(title) and not _STRONG_TECH.search(title)):
+    if all_levels:
+        return False
+    if SENIOR.search(title):
         return True
     if re.search(r"\b(?:Ph\.?D|doctoral|master['’]?s|masters)\b", title, re.I) and not re.search(r"bachelor|undergrad", title, re.I):
         return True
     return bool(re.search(r"\b(?:manager|lead)\b", title, re.I) and not re.search(r"intern|co.?op|junior|associate|new.?grad", title, re.I))
 
 
-def title_could_match(title):
+def title_could_match(title, all_levels=False):
     """False only when infer_level rejects this title whatever the description says.
 
     Adapters use it to skip detail requests for postings that can never match."""
     title = str(title or "")
-    return not _title_excluded(title) and bool(FIELDS.search(title) or _GENERIC_TITLE.search(title))
+    return not _title_excluded(title, all_levels) and bool(FIELDS.search(title) or _GENERIC_TITLE.search(title))
 
 
-def technical_title(title):
+def technical_title(title, all_levels=False):
     """A title that names technical work by itself (no "Associate"/"Analyst"-only titles).
 
     Source discovery uses it: a board is worth polling only if it lists such roles."""
     title = str(title or "")
-    return not _title_excluded(title) and bool(FIELDS.search(title))
+    return not _title_excluded(title, all_levels) and bool(FIELDS.search(title))
 
 
 def detail_priority(title):
@@ -414,12 +429,12 @@ def detail_priority(title):
     return (0 if early else 1, 0 if FIELDS.search(title) else 1)
 
 
-def infer_level(title, description, hint=None):
-    if _title_excluded(title):
+def infer_level(title, description, hint=None, all_levels=False):
+    if _title_excluded(title, all_levels):
         return None
     if not (FIELDS.search(title) or (_GENERIC_TITLE.search(title) and CS_TEXT.search(description))):
         return None
-    if advanced_degree_required(description):
+    if not all_levels and advanced_degree_required(description):
         return None
     if us_citizenship_required(description):
         return None
@@ -453,7 +468,7 @@ def infer_level(title, description, hint=None):
         preferred = re.search(r"preferred|nice.to.have|asset|bonus", context)
         if mandatory or not preferred:
             min_years.append(int(m.group(1)))
-    if min_years and max(min_years) > 2:
+    if min_years and max(min_years) > 2 and not all_levels:
         return None
     for level, pattern in LEVEL_PATTERNS:
         if re.search(pattern, title, re.I):
@@ -462,10 +477,19 @@ def infer_level(title, description, hint=None):
             return level
     if re.search(LEVEL_PATTERNS[2][1], description, re.I):
         return "new_grad"
-    if min_years or re.search(r"no (?:prior )?experience (?:required|necessary)|entry.level|recent graduate", description, re.I):
+    low_experience = bool(min_years) and max(min_years) <= 2
+    if low_experience or re.search(r"no (?:prior )?experience (?:required|necessary)|entry.level|recent graduate", description, re.I):
         return "entry_level"
     if hint in {"internship", "co_op", "new_grad", "entry_level"}:
         return hint
+    if all_levels:
+        # Past the early-career rules: classify the rest instead of dropping it.
+        if (SENIOR.search(title) or (min_years and max(min_years) >= 5)
+                or re.search(r"\b(?:manager|director|head of|vice president|vp|chief)\b", title, re.I)):
+            return "senior_level"
+        if hint == "senior_level":
+            return hint
+        return "mid_level"
     return None
 
 
@@ -497,31 +521,41 @@ def _deadline_caveat(uncertainty):
     return f"The deadline time {reason}; confirm the exact cut-off on the source. Only its calendar date is shown."
 
 
-def normalize_job(raw, now=None):
+def normalize_job(raw, now=None, *, region=None, levels=None):
     now = now or utcnow()
+    region = regions.normalize_region(region)
+    allowed_levels = tuple(levels) if levels else EARLY_LEVELS
+    include_all = bool(set(allowed_levels) & {"mid_level", "senior_level"})
     title, company = str(raw.get("title") or "").strip(), str(raw.get("company") or "").strip()
     location = str(raw.get("location") or "").strip()
     url = canonical_url(raw.get("url"))
     if not title or not company or not url:
         return None
-    if CANADA_EXCLUDED.search(location):
-        return None
-    options = canadian_options(location)
-    if options:
-        location = "; ".join(options)
-    elif str(raw.get("country_hint", "")).upper() in {"CA", "CAN", "CANADA"} and not foreign_location(location):
-        location = (location + " · Canada").strip(" ·")
+    if regions.is_canada(region):
+        if CANADA_EXCLUDED.search(location):
+            return None
+        options = canadian_options(location)
+        if options:
+            location = "; ".join(options)
+        elif str(raw.get("country_hint", "")).upper() in {"CA", "CAN", "CANADA"} and not foreign_location(location):
+            location = (location + " · Canada").strip(" ·")
+        else:
+            return None
     else:
-        return None
+        options = regions.location_options(location, region, raw.get("country_hint"))
+        if not options:
+            return None
+        location = "; ".join(options)
     description = re.sub(r"\s+", " ", str(raw.get("description") or "")).strip()[:45000]
     degree_hint = "; ".join(str(d) for d in (raw.get("degrees") or []))
     listed = re.search(r"listed degrees:\s*([^;\n]{1,160})", description, re.I)
     if listed:
         degree_hint += "; " + listed.group(1)
-    if re.search(r"Ph\.?D|doctoral|master['’]?s|masters", degree_hint, re.I) and not re.search(r"bachelor|undergrad", degree_hint, re.I):
+    if (not include_all and re.search(r"Ph\.?D|doctoral|master['’]?s|masters", degree_hint, re.I)
+            and not re.search(r"bachelor|undergrad", degree_hint, re.I)):
         return None
-    level = infer_level(title, description, raw.get("level_hint"))
-    if not level:
+    level = infer_level(title, description, raw.get("level_hint"), all_levels=include_all)
+    if not level or level not in allowed_levels:
         return None
     notes = ["Potential match: confirm the employer's full requirements and work authorization."]
     if level == "co_op" or re.search(r"enrolled.*co.?op|co.?op program", description, re.I):
@@ -538,7 +572,13 @@ def normalize_job(raw, now=None):
         notes.append("Check whether an advanced degree is required or only preferred.")
     # Neutral base score: tags describe the role, and personal ranking comes from the user's profile
     # (ranking.Matcher) at request time, so no interest is hard-coded here.
-    score, tags, reasons = 40, [], ["Canadian early-career opportunity"]
+    if regions.is_canada(region):
+        reason = "Canadian early-career opportunity" if level in EARLY_LEVELS else "Canadian opportunity"
+    elif regions.is_global(region):
+        reason = "Global opportunity"
+    else:
+        reason = f"{regions.label(region)} opportunity"
+    score, tags, reasons = 40, [], [reason]
     if SPACE.search(company + " " + title):
         tags.append("aerospace")
     if EMBEDDED.search(title):
@@ -583,7 +623,13 @@ def dedup_key(job):
     title = re.sub(r"[^a-z0-9]", "", fold(job["title"]))
     location = fold(job["location"])
     cities = sorted({fold(m.group()) for m in CITIES.finditer(job["location"])})
-    place = "|".join(cities) or ("remote-canada" if "remote" in location else re.sub(r"[^a-z0-9]", "", location))
+    if cities:
+        place = "|".join(cities)
+    elif "remote" in location:
+        # Keep remote postings with different country restrictions distinct.
+        place = "remote-" + (re.sub(r"[^a-z0-9]", "", re.sub(r"\bremote\b", "", location)) or "anywhere")
+    else:
+        place = re.sub(r"[^a-z0-9]", "", location)
     return hashlib.sha256(f"{company}|{title}|{place}".encode()).hexdigest()
 
 
@@ -831,7 +877,7 @@ def _cross_source_candidate(conn, normalized):
     return eligible[0] if len(eligible) == 1 else None
 
 
-def upsert_jobs(db, rows, now=None):
+def upsert_jobs(db, rows, now=None, *, region=None, levels=None):
     now = now or utcnow()
     result = {"raw": 0, "matched": 0, "new": 0, "updated": 0, "rejected": 0, "new_ids": []}
     with connection(db) as conn:
@@ -841,7 +887,7 @@ def upsert_jobs(db, rows, now=None):
             result["raw"] += 1
             sid, jid = str(raw.get("source_id") or "unknown"), str(raw.get("source_job_id") or canonical_url(raw.get("url")) or "")
             existing = conn.execute("SELECT j.* FROM jobs j JOIN aliases a ON j.id=a.job_id WHERE a.source_id=? AND a.source_job_id=?", (sid, jid)).fetchone()
-            normalized = normalize_job(raw, now)
+            normalized = normalize_job(raw, now, region=region, levels=levels)
             # This row can move its own ledger entry and alias between URLs.
             # Every job at an old or new URL is re-evaluated, because the
             # ambiguity of a URL decides which evidence applies to those jobs.
@@ -933,8 +979,10 @@ def set_status(db, job_id, status):
 
 
 def list_jobs(db=DEFAULT_DB, q="", level="", category="", location="", status="", sort="priority", deadline_days=None,
-              page=1, page_size=30, priority_only=False, include_closed=False, now=None, unpaged=False):
+              page=1, page_size=30, priority_only=False, include_closed=False, now=None, unpaged=False,
+              region=None, levels=None):
     now = now or utcnow()
+    wanted_levels = set(levels or ())
     rows = []
     for j in all_jobs(db):
         if not include_closed and (not j["active"] or (j.get("deadline") and parsed_date(j["deadline"]) < now)):
@@ -942,6 +990,10 @@ def list_jobs(db=DEFAULT_DB, q="", level="", category="", location="", status=""
         if not status and j["status"] == "dismissed":
             continue
         if status and status not in {"all", "any"} and j["status"] != status:
+            continue
+        if wanted_levels and j.get("level") not in wanted_levels:
+            continue
+        if region is not None and not regions.matches(j.get("location"), region, j.get("country_hint")):
             continue
         if q and fold(q) not in fold(" ".join(str(j.get(x) or "") for x in ("title", "company", "location", "description"))):
             continue

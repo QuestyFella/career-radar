@@ -16,14 +16,16 @@ from __future__ import annotations
 import functools
 import re
 
+import pycountry
+
 from .core import fold
-from .profile import (LEVELS, canonical_skill, interest_matchers, keys_present, normalize_profile, skill_matchers,
-                      topic_key)
+from .profile import (LEVELS, LEVEL_LABELS, canonical_skill, interest_matchers, keys_present, normalize_profile,
+                      skill_matchers, topic_key)
+from . import regions
 
 BASE_SCORE = 40
 BASE_REASON = "Canadian early-career opportunity"
 DESCRIPTION_CHARS = 6_000
-LEVEL_LABELS = {"internship": "Internship", "co_op": "Co-op", "new_grad": "New grad", "entry_level": "Entry level"}
 LEVEL_BONUS, LEVEL_PENALTY = 5, -20
 INTEREST_POINTS, INTEREST_CAP = 15, 30              # interest in the title, company or tags
 DESCRIPTION_POINTS, DESCRIPTION_CAP = 5, 10         # interest only in the description
@@ -32,10 +34,20 @@ LOCATION_BONUS = 10
 EXCLUDE_PENALTY = -30
 PRIORITY_SCORE = 75
 
-_PROVINCE_CODES = {"ontario": "on", "quebec": "qc", "british columbia": "bc", "alberta": "ab", "manitoba": "mb",
-                   "saskatchewan": "sk", "nova scotia": "ns", "new brunswick": "nb",
-                   "newfoundland and labrador": "nl", "newfoundland": "nl", "prince edward island": "pe",
-                   "yukon": "yt", "northwest territories": "nt", "nunavut": "nu"}
+@functools.lru_cache(maxsize=1)
+def _subdivision_places() -> dict:
+    """Folded first-level subdivision names and codes for preferred-location matching."""
+    places: dict[str, list[tuple[str, str]]] = {}
+    for subdivision in pycountry.subdivisions:
+        name = fold(subdivision.name)
+        code = str(subdivision.code or "").split("-", 1)[-1].casefold()
+        if len(name) >= 3:
+            places.setdefault(name, []).append((name, code))
+        if len(code) == 2:
+            places.setdefault(code, []).append((name, code))
+    return places
+
+
 # Same tokens as profile.letter_tokens: ASCII letters lower-cased, everything else a separator.
 _LETTERS = bytes((c + 32) if 65 <= c <= 90 else (c if 97 <= c <= 122 else 32) for c in range(256))
 _LOWER = bytes((c + 32) if 65 <= c <= 90 else c for c in range(256))
@@ -66,16 +78,20 @@ def _phrase(term: str, *, plural: bool = False) -> str:
 
 
 def _location_pattern(preference: str):
-    """``(regex, tag)`` for a preferred location: "Ontario" also matches ", ON"; "Toronto, ON" matches Toronto."""
+    """``(regex, tag)`` for a preferred location: "Ontario" also matches ", ON";
+    "Texas" also matches ", TX"; "Toronto, ON" matches Toronto."""
     folded = re.sub(r"\s+", " ", fold(preference) or preference.casefold()).strip(" ,")
     place = folded.split(",")[0].strip() or folded
-    names = [name for name, code in _PROVINCE_CODES.items() if place in (name, code)]
-    if names:
-        code = _PROVINCE_CODES[names[0]]
-        options = [_phrase(name) for name in names]
-        options.append(r"(?:^|[,(/|]|\s)\s*" + code
-                       + r"(?=\s*(?:$|[,;/|)(])|\s+[-–—]\s|\s+(?:or|and|&)\s|\s*,\s*canada\b)")
-    else:
+    options = []
+    seen = set()
+    for name, code in _subdivision_places().get(place, []):
+        if name not in seen:
+            seen.add(name)
+            options.append(_phrase(name))
+        if len(code) == 2:
+            options.append(r"(?:^|[,(/|]|\s)\s*" + re.escape(code)
+                           + r"(?=\s*(?:$|[,;/|)(])|\s+[-–—]\s|\s+(?:or|and|&)\s|\s*,\s*canada\b)")
+    if not options:
         options = [_phrase(place)]
     return re.compile("|".join(options), re.M), place
 
@@ -178,8 +194,16 @@ class _Terms:
 class Matcher:
     """Scores jobs for one candidate profile; all patterns are compiled once in ``__init__``."""
 
-    def __init__(self, profile: dict | None):
+    def __init__(self, profile: dict | None, region=None):
         self.profile = normalize_profile(profile if isinstance(profile, dict) else None)
+        self.base_reason = BASE_REASON
+        self.is_canada = False
+        if region is not None:
+            region = regions.normalize_region(region)
+            self.is_canada = region["id"] == "ca"
+            self.base_reason = ("Canadian opportunity" if self.is_canada
+                                else "Global opportunity" if region["id"] == "global"
+                                else f"{region['label']} opportunity")
         p = self.profile
         self.levels = tuple(p["levels"])
         self._level_set = frozenset(p["levels"])
@@ -224,9 +248,10 @@ class Matcher:
         title, company = _text(job.get("title")), _text(job.get("company"))
         raw_tags = job.get("tags")
         tags = [tag for tag in raw_tags if isinstance(tag, str)] if isinstance(raw_tags, (list, tuple)) else []
-        score, reasons = BASE_SCORE, [BASE_REASON]
-
         level = job.get("level")
+        base_reason = BASE_REASON if self.is_canada and level in {"internship", "co_op", "new_grad", "entry_level"} else self.base_reason
+        score, reasons = BASE_SCORE, [base_reason]
+
         if level in self._level_set:
             score += LEVEL_BONUS
             reasons.append(f"Role level you want: {LEVEL_LABELS[level]}")

@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "career-radar"
 version = "2.0.0"
-description = "Self-hosted job radar for Canadian internships, co-ops, new-grad and entry-level tech roles"
+description = "Self-hosted job radar for technical roles at every level, in the region you choose"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
 authors = [{ name = "QuestyFella" }]
-keywords = ["jobs", "internships", "new-grad", "canada", "job-board", "self-hosted"]
+keywords = ["jobs", "job-search", "internships", "new-grad", "canada", "job-board", "self-hosted", "remote"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Framework :: FastAPI",

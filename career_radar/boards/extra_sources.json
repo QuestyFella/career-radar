@@ -47,7 +47,7 @@
   },
   {
     "id": "linkedin-newgrad",
-    "name": "LinkedIn public — new grad, Canada",
+    "name": "LinkedIn public — new grad",
     "type": "linkedin",
     "url": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
     "keywords": "new grad",
@@ -146,7 +146,7 @@
   },
   {
     "id": "themuse-canadian-earlycareer",
-    "name": "The Muse — Canadian entry-level and internships",
+    "name": "The Muse — early-career searches",
     "type": "themuse",
     "url": "https://www.themuse.com/api/public/jobs",
     "documentation_url": "https://www.themuse.com/developers/api/v2",
@@ -158,7 +158,7 @@
   },
   {
     "id": "remotive-canada",
-    "name": "Remotive — explicit Canada remote jobs",
+    "name": "Remotive — remote roles",
     "type": "remotive",
     "url": "https://remotive.com/api/remote-jobs",
     "documentation_url": "https://remotive.com/api-documentation",
@@ -169,7 +169,7 @@
   },
   {
     "id": "remoteok-canada",
-    "name": "Remote OK — explicit Canada remote jobs",
+    "name": "Remote OK — remote roles",
     "type": "remoteok",
     "url": "https://remoteok.com/api",
     "canada_only": true,
@@ -177,7 +177,7 @@
   },
   {
     "id": "arbeitnow-canada-supplement",
-    "name": "Arbeitnow — Canadian-location supplement (Europe-focused)",
+    "name": "Arbeitnow — location supplement (Europe-focused)",
     "type": "arbeitnow",
     "url": "https://www.arbeitnow.com/api/job-board-api",
     "documentation_url": "https://www.arbeitnow.com/blog/job-board-api",

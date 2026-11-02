@@ -59,8 +59,10 @@ def llm_configured(data=None):
 
 def run_collection_job(data=None, db=None):
     from .collect import run_collection
-    budget = settings.load(data)["schedule"]["collection_budget_minutes"]
-    report = run_collection(db=db or config.db_path(), max_seconds=budget * 60)
+    from .profile import load_profile
+    current = settings.load(data)
+    report = run_collection(db=db or config.db_path(), max_seconds=current["schedule"]["collection_budget_minutes"] * 60,
+                            region=current["region"], levels=load_profile(data)["levels"])
     if report.get("skipped"):
         return True, report.get("reason")
     summary = (f"{report.get('new_jobs', 0)} new jobs; {report.get('sources_ok', 0)}/{report.get('sources_total', 0)} "

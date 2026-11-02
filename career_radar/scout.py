@@ -1,4 +1,4 @@
-"""Optional LLM scout: asks the user's LLM for Canadian employers' public job-board links.
+"""Optional LLM scout: asks the user's LLM for employers' public job-board links.
 
 Replaces the external research agents of the original deployment. The model only *suggests*
 boards; nothing is trusted until discovery verifies it with a live public-API probe. Suggestions
@@ -29,16 +29,34 @@ SYSTEM = (
 )
 
 
-def _prompt(theme, known, count):
+def _prompt(theme, known, count, region_label="Canada"):
     sample = "\n".join(known[:MAX_KNOWN_IN_PROMPT])
     return (
         f"Theme: {theme}\n\n"
-        f"Suggest up to {count} employers for this theme with Canadian technical roles.\n"
+        f"Suggest up to {count} employers for this theme with {region_label} technical roles.\n"
         "Return a JSON object: {\"leads\": [{\"company\": str, \"board_url\": str, "
         "\"ats\": \"greenhouse|lever|ashby|workday|smartrecruiters|workable|recruitee|bamboohr|other\", "
         "\"canada_evidence\": str (city/province or office, short), \"notes\": str (short)}]}\n\n"
         f"Already known boards (skip these):\n{sample}\n"
     )
+
+
+def _system(region_label="Canada"):
+    base = (
+        "You help a job-search tool find employers' public job boards. Reply with JSON only. "
+        f"Suggest real organisations that hire technical staff in {region_label}, and the exact URL of "
+        "their public job board when it is hosted on one of these systems: Greenhouse "
+        "(job-boards.greenhouse.io/<board>), Lever (jobs.lever.co/<board>), Ashby (jobs.ashbyhq.com/<board>), "
+        "Workday (<tenant>.wd<N>.myworkdayjobs.com/<site>), SmartRecruiters "
+        "(jobs.smartrecruiters.com/<Company>), Workable (apply.workable.com/<account>), Recruitee "
+        "(<account>.recruitee.com) or BambooHR (<account>.bamboohr.com/careers). "
+        "Only include a URL you are confident exists; if you know the employer but not the board, set "
+        "board_url to its careers page and ats to \"other\". Never invent slugs. Do not repeat boards from "
+        "the known list."
+    )
+    if region_label == "Canada":
+        base = base.replace("hire technical staff in Canada", "hire technical students, interns, co-ops, new graduates or junior staff in Canada")
+    return base
 
 
 def _clean_leads(reply):
@@ -64,9 +82,10 @@ def run(client, *, root=None, themes=3, per_theme=12):
     known_file = Path(plan["known_boards_file"])
     known = [line for line in known_file.read_text().splitlines() if line and not line.startswith("unsupported system:")]
     results, errors = [], []
+    system = _system(plan["region_label"])
     for theme in plan["themes"]:
         try:
-            reply = client.complete_json(SYSTEM, _prompt(theme, known, per_theme), max_tokens=3000)
+            reply = client.complete_json(system, _prompt(theme, known, per_theme, plan["region_label"]), max_tokens=3000)
             leads = _clean_leads(reply)
             results.append({"theme": theme, "leads": leads})
         except Exception as exc:  # One failed theme must not lose the others.

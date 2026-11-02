@@ -12,7 +12,7 @@ import re
 import threading
 from pathlib import Path
 
-from . import config
+from . import config, regions
 
 DEFAULT_SCHEDULE = {
     "enabled": True,
@@ -80,6 +80,18 @@ def clean_schedule(value, base=None):
     return schedule
 
 
+def clean_region(value, base=None):
+    """Validate the search region; a missing value keeps Canada."""
+    if value is None:
+        return dict(base or regions.DEFAULT_REGION, terms=list((base or regions.DEFAULT_REGION).get("terms") or []))
+    if not isinstance(value, dict):
+        raise SettingsError("region: send an object with an id")
+    cleaned = regions.normalize_region(value)
+    if cleaned == regions.default_region() and str(value.get("id") or "").strip().casefold() not in {"", "ca", "can", "canada"}:
+        raise SettingsError("region: unknown country or region")
+    return cleaned
+
+
 def load(data=None):
     raw = config.read_json(_path(config.SETTINGS_FILE, data), {})
     raw = raw if isinstance(raw, dict) else {}
@@ -88,10 +100,15 @@ def load(data=None):
         schedule = clean_schedule(raw.get("schedule"))
     except SettingsError:
         schedule = dict(DEFAULT_SCHEDULE)
+    try:
+        region = clean_region(raw.get("region"))
+    except SettingsError:
+        region = dict(regions.DEFAULT_REGION, terms=[])
     provider = str(llm.get("provider") or os.environ.get("CAREER_RADAR_LLM_PROVIDER") or "")
     model = str(llm.get("model") or os.environ.get("CAREER_RADAR_LLM_MODEL") or "")
     base_url = str(llm.get("base_url") or os.environ.get("CAREER_RADAR_LLM_BASE_URL") or "")
-    return {"llm": {"provider": provider, "model": model, "base_url": base_url}, "schedule": schedule}
+    return {"llm": {"provider": provider, "model": model, "base_url": base_url}, "schedule": schedule,
+            "region": region}
 
 
 def save(changes, data=None):
@@ -110,6 +127,8 @@ def save(changes, data=None):
             current["llm"] = {"provider": provider, "model": model, "base_url": base_url.rstrip("/")}
         if "schedule" in changes and changes["schedule"] is not None:
             current["schedule"] = clean_schedule(changes["schedule"], current["schedule"])
+        if "region" in changes and changes["region"] is not None:
+            current["region"] = clean_region(changes["region"], current["region"])
         config.write_json(_path(config.SETTINGS_FILE, data), current)
         return current
 

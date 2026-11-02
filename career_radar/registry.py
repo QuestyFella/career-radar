@@ -23,7 +23,7 @@ BUILTIN_FILES = ("sources.json", "extra_sources.json")
 SEARCH_TYPES = {
     "linkedin": {"label": "LinkedIn public job search", "url": "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
                  "defaults": {"max_pages": 2, "detail_limit": 5},
-                 "note": "LinkedIn public guest search for Canada, internship and entry-level filters; bounded pages, "
+                 "note": "LinkedIn public guest search for your region and role levels; bounded pages, "
                          "may be rate limited. Added by you."},
     "jobbank": {"label": "Job Bank Canada search", "url": "https://www.jobbank.gc.ca/jobsearch/jobsearch",
                 "defaults": {"max_pages": 2, "detail_limit": 50},

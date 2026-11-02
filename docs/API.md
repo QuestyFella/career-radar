@@ -51,7 +51,7 @@ Profile object (every key always present; strings may be empty, lists may be emp
   "skills": ["Python", "C++"],
   "interests": ["embedded", "aerospace"], // boost terms for ranking ("priority matches")
   "preferred_locations": ["Toronto", "Remote"],
-  "levels": ["internship", "co_op", "new_grad", "entry_level"], // preferred role levels
+  "levels": ["internship", "co_op", "new_grad", "entry_level"], // or mid_level, senior_level; "any" = all six
   "exclude_keywords": ["sales"],          // demote titles containing these
   "links": ["https://github.com/example"],
   "source": "manual|resume|resume+llm",
@@ -87,7 +87,7 @@ Source item (registry entry merged with its last health check):
 | Method | Path | Body / result |
 |---|---|---|
 | GET | `/api/sources` | `{items: [source], last_refresh, counts: {total, enabled, by_origin: {...}, by_type: {...}}, types: [{type, label, kind: "board"\|"search"}]}` |
-| POST | `/api/sources/check` | `{urls: ["https://jobs.lever.co/acme", ...]}` (≤ 10) → `{candidates: [{key, type, name, url, status, raw, canada, tech, matched, sample_titles, error, monitored_id}], unsupported: ["url", ...]}` — live read-only probe; `status` is `verified\|no_canada_tech\|not_found\|error\|excluded\|already_monitored` |
+| POST | `/api/sources/check` | `{urls: ["https://jobs.lever.co/acme", ...]}` (≤ 10) → `{candidates: [{key, type, name, url, status, raw, canada, tech, matched, sample_titles, error, monitored_id}], unsupported: ["url", ...]}` — live read-only probe; `status` is `verified\|no_canada_tech\|not_found\|error\|excluded\|already_monitored` (`no_canada_tech` is the historical name for “no technical roles in your selected region”; `canada` is the count in your region) |
 | POST | `/api/sources` | board: `{url, name?}`; search: `{type: "linkedin"\|"jobbank", keywords, name?}` → `{source}` (201). 409 when already monitored, 400 when the URL is not a supported board |
 | PATCH | `/api/sources/{id}` | `{enabled?, name?, keywords?}` (`name`/`keywords` only for `user` sources) → `{source}` |
 | DELETE | `/api/sources/{id}` | `user`: deleted; `discovered`: removed and never re-added by discovery; `builtin`: 400 (disable it instead) → `{removed: id}` |
@@ -101,7 +101,7 @@ Recruitee (`x.recruitee.com`), BambooHR (`x.bamboohr.com/careers`).
 
 | Method | Path | Result |
 |---|---|---|
-| GET | `/api/discovery` | `{discovered_sources, curated_sources, candidates_checked, by_status, running, last_run: summary\|null, scout: {available, enabled, running, last_run: summary\|null}}` |
+| GET | `/api/discovery` | `{discovered_sources, curated_sources, candidates_checked, by_status, region, region_label, running, last_run: summary\|null, scout: {available, enabled, running, last_run: summary\|null}}` |
 | POST | `/api/discovery/run` | `{started, message}` — harvest board links from collected jobs and lead files, probe, re-verify |
 | POST | `/api/discovery/scout` | `{started, message}` — LLM scout (400 without a configured LLM) |
 
@@ -110,7 +110,7 @@ Recruitee (`x.recruitee.com`), BambooHR (`x.bamboohr.com/careers`).
 | Method | Path | Body / result |
 |---|---|---|
 | GET | `/api/settings` | see below |
-| PUT | `/api/settings` | `{llm?: {provider, model, base_url}, schedule?: {...}}` (partial) → same as GET |
+| PUT | `/api/settings` | `{llm?: {provider, model, base_url}, schedule?: {...}, region?: {id, label?, terms?, include_remote?}}` (partial) → same as GET |
 | PUT | `/api/settings/secrets` | `{provider: "openai", api_key: "..."}`; `api_key: null` clears it → same as GET |
 | GET | `/api/llm/models?provider=openai` | `{items: [{id, label}], error: null\|str}` |
 | POST | `/api/llm/test` | `{}` → `{ok, provider, model, latency_ms, reply\|null, error\|null}` |
@@ -129,6 +129,8 @@ Recruitee (`x.recruitee.com`), BambooHR (`x.bamboohr.com/careers`).
                  "default_model": "gpt-5.4-mini", "needs_base_url": false, "docs_url": "https://platform.openai.com/api-keys"}],
   "secrets": {"openai": {"set": true, "source": "env|file", "hint": "…a1b2"}},
   "codex": {"logged_in": false, "account": null, "expires_at": null},
+  "region": {"id": "ca", "label": "Canada", "terms": [], "include_remote": true},
+  "region_options": [{"id": "global", "label": "Anywhere (global)"}, {"id": "ca", "label": "Canada"}, …],
   "schedule": {"enabled": true, "collect_times": ["08:00", "18:00"], "discovery_time": "04:30",
                "scout_enabled": false, "scout_time": "01:30", "scout_themes_per_run": 3,
                "collection_budget_minutes": 40, "discovery_budget_minutes": 15},
@@ -140,3 +142,7 @@ Recruitee (`x.recruitee.com`), BambooHR (`x.bamboohr.com/careers`).
 Provider ids: `openai`, `anthropic`, `openrouter`, `opencode-zen`, `opencode-go`, `codex`
 (ChatGPT sign-in, no key), `openai-compatible` (custom base URL, e.g. Ollama/LM Studio; key optional).
 API keys are write-only: the API never returns them, only `set/source/hint`.
+
+`region.id` is an ISO 3166-1 alpha-2 country code, `global`, or `custom`. For a custom region,
+send a `label` and/or comma-readable `terms` list; matching is case-insensitive. `include_remote`
+defaults to true. The feed filters stored jobs by the current region and the profile's levels.

@@ -30,6 +30,9 @@ def _monitored_index(data=None):
 def check(urls, *, data=None, fetcher=None):
     """Live read-only probe of each supported URL (at most ``MAX_URLS``, four at a time)."""
     from concurrent.futures import ThreadPoolExecutor
+    from . import profile, settings
+    region = settings.load(data)["region"]
+    levels = profile.load_profile(data)["levels"]
     urls = [str(u).strip() for u in urls if str(u).strip()][:MAX_URLS]
     monitored = _monitored_index(data)
     candidates, unsupported, seen, todo = [], [], set(), []
@@ -42,7 +45,7 @@ def check(urls, *, data=None, fetcher=None):
             continue
         seen.add(cand["key"])
         spelling = next(iter(cand["spellings"]))
-        preview = discover.build_source(cand, spelling, probe=True)
+        preview = discover.build_source(cand, spelling, probe=True, region=region)
         row = {"key": cand["key"], "type": cand["type"], "name": preview["name"], "url": preview["url"],
                "status": None, "raw": 0, "canada": 0, "tech": 0, "matched": 0, "sample_titles": [],
                "error": None, "monitored_id": None}
@@ -56,7 +59,7 @@ def check(urls, *, data=None, fetcher=None):
     def probe(item):
         cand, row = item
         try:
-            result = discover.probe_candidate(cand, fetcher or collect.fetch_source)
+            result = discover.probe_candidate(cand, fetcher or collect.fetch_source, region=region, levels=levels)
         except Exception as exc:  # one broken board must not fail the whole check
             result = {"status": "error", "error": str(exc)[:300]}
         row.update({k: result.get(k, row[k]) for k in ("status", "raw", "canada", "tech", "matched", "sample_titles", "error")})
@@ -70,6 +73,7 @@ def check(urls, *, data=None, fetcher=None):
 
 def board_source(url, name=None, *, data=None):
     """A complete user registry entry for a supported board URL (no network)."""
+    from . import settings
     cand = candidate_for(url)
     if cand is None:
         raise registry.RegistryError(
@@ -78,7 +82,7 @@ def board_source(url, name=None, *, data=None):
     spelling = next(iter(cand["spellings"]))
     taken = {s.get("id") for s in registry.load_registry(data)}
     clean = str(name or "").strip()[:120] or None
-    source = discover.build_source(cand, spelling, clean, taken=taken)
+    source = discover.build_source(cand, spelling, clean, taken=taken, region=settings.load(data)["region"])
     source["coverage_note"] = source["coverage_note"].replace(
         "Added by Career Radar source discovery after a live public-API check.", "Added by you.")
     source["discovery_key"] = cand["key"]

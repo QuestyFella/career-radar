@@ -23,6 +23,10 @@ PROFILE_KEYS = ("name", "email", "location", "headline", "graduation", "educatio
                 "skills", "interests", "preferred_locations", "levels", "exclude_keywords", "links",
                 "source", "updated_at")
 LEVELS = ("internship", "co_op", "new_grad", "entry_level")
+EXTRA_LEVELS = ("mid_level", "senior_level")
+ALL_LEVELS = LEVELS + EXTRA_LEVELS
+LEVEL_LABELS = {"internship": "Internship", "co_op": "Co-op", "new_grad": "New grad",
+                "entry_level": "Entry level", "mid_level": "Mid level", "senior_level": "Senior level"}
 RESUME_FILE = "resume.json"
 SOURCES = ("manual", "resume", "resume+llm")
 SCALAR_KEYS = ("name", "email", "location", "headline", "graduation")
@@ -37,7 +41,10 @@ MAX_TEXT_CHARS = 60_000
 LLM_TEXT_CHARS = 15_000
 LITTLE_TEXT_WARNING = "Very little selectable text was found (scanned PDF?). Fill in your profile manually."
 _LEVEL_ALIASES = {"co-op": "co_op", "coop": "co_op", "co op": "co_op", "new grad": "new_grad", "new-grad": "new_grad",
-                  "entry level": "entry_level", "entry-level": "entry_level", "intern": "internship"}
+                  "entry level": "entry_level", "entry-level": "entry_level", "intern": "internship",
+                  "mid": "mid_level", "mid-level": "mid_level", "intermediate": "mid_level",
+                  "senior": "senior_level", "senior-level": "senior_level", "sr": "senior_level",
+                  "any": "any_level", "all": "any_level", "any level": "any_level", "all levels": "any_level"}
 
 
 class ResumeError(ValueError):
@@ -134,15 +141,24 @@ def _levels(value) -> list:
     for item in _as_list(value):
         key = _clean_str(item, 40).casefold() if isinstance(item, str) else ""
         key = _LEVEL_ALIASES.get(key, key.replace("-", "_").replace(" ", "_"))
-        if key in LEVELS:
+        if key == "any_level":
+            return list(ALL_LEVELS)
+        if key in ALL_LEVELS:
             wanted.add(key)
-    return [level for level in LEVELS if level in wanted] or list(LEVELS)
+    # No selection (or only unknown values) means the four early-career levels,
+    # preserving the app's original default.
+    return [level for level in ALL_LEVELS if level in wanted] or list(LEVELS)
+
+
+def includes_all_levels(levels) -> bool:
+    wanted = set(levels or ())
+    return bool(wanted & set(EXTRA_LEVELS))
 
 
 def normalize_profile(data: dict | None) -> dict:
     """Type-clean a profile: every key present, unknown keys dropped, strings and lists capped.
 
-    An empty or invalid ``levels`` selection means all four levels.
+    An empty or invalid ``levels`` selection means the four early-career levels.
     """
     data = data if isinstance(data, dict) else {}
     profile = empty_profile()

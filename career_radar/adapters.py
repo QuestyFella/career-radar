@@ -444,7 +444,7 @@ def fetch_source(source: dict) -> list[dict]:
     Required source keys: id, name, type; board (or recognized public url).
     Optional: company, region='eu' (Lever), api_url (exact canonical URL),
     page_size=100 (Lever, 1..100), max_pages=200 (1..2000, explicit failure).
-    Returns all locations/seniorities; Canadian eligibility is the caller's job.
+    Returns all locations/seniorities; regional eligibility is the caller's job.
     """
     if not isinstance(source, dict):
         raise SourceError("Source must be an object")

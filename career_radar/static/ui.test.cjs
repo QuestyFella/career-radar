@@ -85,6 +85,14 @@ test('default filters are explicit and invalid enums cannot become API parameter
   assert.equal(query.has('deadline_days'), false);
 });
 
+test('experienced role levels are valid filter values', () => {
+  assert.equal(buildQuery({ level: 'mid_level' }).get('level'), 'mid_level');
+  assert.equal(buildQuery({ level: 'senior_level' }).get('level'), 'senior_level');
+  assert.deepEqual(
+    cleanProfile({ levels: ['senior_level', 'mid_level', 'internship', 'mid_level'] }).levels,
+    ['internship', 'mid_level', 'senior_level']);
+});
+
 test('unknown deadlines are explicitly Not published, never rolling or invented', () => {
   assert.equal(formatDeadline(null), 'Not published');
   assert.equal(formatDeadline(undefined), 'Not published');

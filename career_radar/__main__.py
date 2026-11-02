@@ -9,7 +9,7 @@ import sys
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="career-radar", description="Self-hosted Canadian early-career job radar")
+    parser = argparse.ArgumentParser(prog="career-radar", description="Self-hosted job radar for any region and every career level")
     sub = parser.add_subparsers(dest="command")
     serve = sub.add_parser("serve", help="run the web app and the scheduler (default)")
     serve.add_argument("--host", default=os.environ.get("CAREER_RADAR_HOST", "0.0.0.0"))
