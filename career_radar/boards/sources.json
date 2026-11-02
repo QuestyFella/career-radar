@@ -1,0 +1,1034 @@
+[
+  {
+    "id": "ashby-1password",
+    "name": "1Password",
+    "type": "ashby",
+    "board": "1password",
+    "url": "https://jobs.ashbyhq.com/1password",
+    "sectors": [
+      "security"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/1password",
+    "verified_at": "2026-10-31T14:47:18.913494+00:00",
+    "probe_raw_count": 87,
+    "probe_canada_location_count": 62
+  },
+  {
+    "id": "lever-achievers",
+    "name": "Achievers",
+    "type": "lever",
+    "board": "achievers",
+    "url": "https://jobs.lever.co/achievers",
+    "sectors": [
+      "enterprise"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/achievers",
+    "verified_at": "2026-10-31T14:47:28.700529+00:00",
+    "probe_raw_count": 13,
+    "probe_canada_location_count": 12
+  },
+  {
+    "id": "greenhouse-ada18",
+    "name": "Ada",
+    "type": "greenhouse",
+    "board": "ada18",
+    "url": "https://job-boards.greenhouse.io/ada18",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/ada18/jobs",
+    "verified_at": "2026-10-31T14:47:44.060742+00:00",
+    "probe_raw_count": 7,
+    "probe_canada_location_count": 5
+  },
+  {
+    "id": "greenhouse-affirm",
+    "name": "Affirm",
+    "type": "greenhouse",
+    "board": "affirm",
+    "url": "https://job-boards.greenhouse.io/affirm",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/affirm/jobs",
+    "verified_at": "2026-10-31T14:47:25.008787+00:00",
+    "probe_raw_count": 245,
+    "probe_canada_location_count": 84
+  },
+  {
+    "id": "greenhouse-airbnb",
+    "name": "Airbnb",
+    "type": "greenhouse",
+    "board": "airbnb",
+    "url": "https://job-boards.greenhouse.io/airbnb",
+    "sectors": [
+      "commerce"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/airbnb/jobs",
+    "verified_at": "2026-10-31T14:47:35.336264+00:00",
+    "probe_raw_count": 202,
+    "probe_canada_location_count": 14
+  },
+  {
+    "id": "greenhouse-anthropic",
+    "name": "Anthropic",
+    "type": "greenhouse",
+    "board": "anthropic",
+    "url": "https://job-boards.greenhouse.io/anthropic",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/anthropic/jobs",
+    "verified_at": "2026-10-31T14:47:37.956744+00:00",
+    "probe_raw_count": 675,
+    "probe_canada_location_count": 8
+  },
+  {
+    "id": "greenhouse-asana",
+    "name": "Asana",
+    "type": "greenhouse",
+    "board": "asana",
+    "url": "https://job-boards.greenhouse.io/asana",
+    "sectors": [
+      "software"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/asana/jobs",
+    "verified_at": "2026-10-31T14:47:31.964294+00:00",
+    "probe_raw_count": 110,
+    "probe_canada_location_count": 23
+  },
+  {
+    "id": "ashby-ashby",
+    "name": "Ashby",
+    "type": "ashby",
+    "board": "ashby",
+    "url": "https://jobs.ashbyhq.com/ashby",
+    "sectors": [
+      "enterprise"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/ashby",
+    "verified_at": "2026-10-31T14:47:40.062755+00:00",
+    "probe_raw_count": 74,
+    "probe_canada_location_count": 32
+  },
+  {
+    "id": "greenhouse-axon",
+    "name": "Axon",
+    "type": "greenhouse",
+    "board": "axon",
+    "url": "https://job-boards.greenhouse.io/axon",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/axon/jobs",
+    "verified_at": "2026-10-31T14:47:44.181471+00:00",
+    "probe_raw_count": 471,
+    "probe_canada_location_count": 6
+  },
+  {
+    "id": "greenhouse-block",
+    "name": "Block",
+    "type": "greenhouse",
+    "board": "block",
+    "url": "https://job-boards.greenhouse.io/block",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/block/jobs",
+    "verified_at": "2026-10-31T14:47:25.669643+00:00",
+    "probe_raw_count": 204,
+    "probe_canada_location_count": 14
+  },
+  {
+    "id": "greenhouse-brex",
+    "name": "Brex",
+    "type": "greenhouse",
+    "board": "brex",
+    "url": "https://job-boards.greenhouse.io/brex",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/brex/jobs",
+    "verified_at": "2026-10-31T14:47:42.215450+00:00",
+    "probe_raw_count": 263,
+    "probe_canada_location_count": 36
+  },
+  {
+    "id": "lever-caseware",
+    "name": "Caseware",
+    "type": "lever",
+    "board": "caseware",
+    "url": "https://jobs.lever.co/caseware",
+    "sectors": [
+      "enterprise"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/caseware",
+    "verified_at": "2026-10-31T14:47:27.078392+00:00",
+    "probe_raw_count": 41,
+    "probe_canada_location_count": 21
+  },
+  {
+    "id": "ashby-cerebras",
+    "name": "Cerebras Systems",
+    "type": "ashby",
+    "board": "cerebras",
+    "url": "https://jobs.ashbyhq.com/cerebras",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/cerebras",
+    "verified_at": "2026-10-31T14:47:43.877416+00:00",
+    "probe_raw_count": 116,
+    "probe_canada_location_count": 45
+  },
+  {
+    "id": "ashby-cohere",
+    "name": "Cohere",
+    "type": "ashby",
+    "board": "cohere",
+    "url": "https://jobs.ashbyhq.com/cohere",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/cohere",
+    "verified_at": "2026-10-31T14:47:24.991152+00:00",
+    "probe_raw_count": 122,
+    "probe_canada_location_count": 79
+  },
+  {
+    "id": "greenhouse-coinbase",
+    "name": "Coinbase",
+    "type": "greenhouse",
+    "board": "coinbase",
+    "url": "https://job-boards.greenhouse.io/coinbase",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/coinbase/jobs",
+    "verified_at": "2026-10-31T14:47:19.882247+00:00",
+    "probe_raw_count": 250,
+    "probe_canada_location_count": 9
+  },
+  {
+    "id": "greenhouse-coveoen",
+    "name": "Coveo",
+    "type": "greenhouse",
+    "board": "coveoen",
+    "url": "https://job-boards.greenhouse.io/coveoen",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/coveoen/jobs",
+    "verified_at": "2026-10-31T14:47:42.734334+00:00",
+    "probe_raw_count": 46,
+    "probe_canada_location_count": 36
+  },
+  {
+    "id": "greenhouse-d2l",
+    "name": "D2L",
+    "type": "greenhouse",
+    "board": "d2l",
+    "url": "https://job-boards.greenhouse.io/d2l",
+    "sectors": [
+      "education"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/d2l/jobs",
+    "verified_at": "2026-10-31T14:47:28.735565+00:00",
+    "probe_raw_count": 22,
+    "probe_canada_location_count": 18
+  },
+  {
+    "id": "greenhouse-databricks",
+    "name": "Databricks",
+    "type": "greenhouse",
+    "board": "databricks",
+    "url": "https://job-boards.greenhouse.io/databricks",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/databricks/jobs",
+    "verified_at": "2026-10-31T14:47:20.230167+00:00",
+    "probe_raw_count": 901,
+    "probe_canada_location_count": 26
+  },
+  {
+    "id": "greenhouse-datadog",
+    "name": "Datadog",
+    "type": "greenhouse",
+    "board": "datadog",
+    "url": "https://job-boards.greenhouse.io/datadog",
+    "sectors": [
+      "developer_tools"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/datadog/jobs",
+    "verified_at": "2026-10-31T14:47:31.833958+00:00",
+    "probe_raw_count": 397,
+    "probe_canada_location_count": 1
+  },
+  {
+    "id": "greenhouse-doordashusa",
+    "name": "DoorDash",
+    "type": "greenhouse",
+    "board": "doordashusa",
+    "url": "https://job-boards.greenhouse.io/doordashusa",
+    "sectors": [
+      "commerce"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/doordashusa/jobs",
+    "verified_at": "2026-10-31T14:47:34.607765+00:00",
+    "probe_raw_count": 439,
+    "probe_canada_location_count": 1
+  },
+  {
+    "id": "greenhouse-dropbox",
+    "name": "Dropbox",
+    "type": "greenhouse",
+    "board": "dropbox",
+    "url": "https://job-boards.greenhouse.io/dropbox",
+    "sectors": [
+      "software"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/dropbox/jobs",
+    "verified_at": "2026-10-31T14:47:31.951351+00:00",
+    "probe_raw_count": 24,
+    "probe_canada_location_count": 5
+  },
+  {
+    "id": "greenhouse-elastic",
+    "name": "Elastic",
+    "type": "greenhouse",
+    "board": "elastic",
+    "url": "https://job-boards.greenhouse.io/elastic",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/elastic/jobs",
+    "verified_at": "2026-10-31T14:47:30.029782+00:00",
+    "probe_raw_count": 407,
+    "probe_canada_location_count": 32
+  },
+  {
+    "id": "ashby-elevenlabs",
+    "name": "ElevenLabs",
+    "type": "ashby",
+    "board": "elevenlabs",
+    "url": "https://jobs.ashbyhq.com/elevenlabs",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/elevenlabs",
+    "verified_at": "2026-10-31T14:47:39.008605+00:00",
+    "probe_raw_count": 144,
+    "probe_canada_location_count": 4
+  },
+  {
+    "id": "greenhouse-epicgames",
+    "name": "Epic Games",
+    "type": "greenhouse",
+    "board": "epicgames",
+    "url": "https://job-boards.greenhouse.io/epicgames",
+    "sectors": [
+      "gaming"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/epicgames/jobs",
+    "verified_at": "2026-10-31T14:47:42.264768+00:00",
+    "probe_raw_count": 137,
+    "probe_canada_location_count": 22
+  },
+  {
+    "id": "greenhouse-faire",
+    "name": "Faire",
+    "type": "greenhouse",
+    "board": "faire",
+    "url": "https://job-boards.greenhouse.io/faire",
+    "sectors": [
+      "commerce"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/faire/jobs",
+    "verified_at": "2026-10-31T14:47:19.712059+00:00",
+    "probe_raw_count": 67,
+    "probe_canada_location_count": 14
+  },
+  {
+    "id": "greenhouse-figma",
+    "name": "Figma",
+    "type": "greenhouse",
+    "board": "figma",
+    "url": "https://job-boards.greenhouse.io/figma",
+    "sectors": [
+      "software"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/figma/jobs",
+    "verified_at": "2026-10-31T14:47:20.256725+00:00",
+    "probe_raw_count": 140,
+    "probe_canada_location_count": 0,
+    "coverage_note": "Explicitly requested employer; endpoint is active, but no current Canadian listing location was found. Monitor future postings; never assume generic remote permits work in Canada."
+  },
+  {
+    "id": "ashby-float",
+    "name": "Float Financial",
+    "type": "ashby",
+    "board": "float",
+    "url": "https://jobs.ashbyhq.com/float",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/float",
+    "verified_at": "2026-10-31T14:47:26.108939+00:00",
+    "probe_raw_count": 19,
+    "probe_canada_location_count": 19
+  },
+  {
+    "id": "greenhouse-geotab",
+    "name": "Geotab",
+    "type": "greenhouse",
+    "board": "geotab",
+    "url": "https://job-boards.greenhouse.io/geotab",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/geotab/jobs",
+    "verified_at": "2026-10-31T14:47:18.913958+00:00",
+    "probe_raw_count": 63,
+    "probe_canada_location_count": 17
+  },
+  {
+    "id": "greenhouse-internshiplist2000",
+    "name": "Geotab",
+    "type": "greenhouse",
+    "board": "internshiplist2000",
+    "url": "https://job-boards.greenhouse.io/internshiplist2000",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/internshiplist2000/jobs",
+    "verified_at": "2026-10-31T14:47:43.887072+00:00",
+    "probe_raw_count": 12,
+    "probe_canada_location_count": 12
+  },
+  {
+    "id": "greenhouse-gitlab",
+    "name": "GitLab",
+    "type": "greenhouse",
+    "board": "gitlab",
+    "url": "https://job-boards.greenhouse.io/gitlab",
+    "sectors": [
+      "developer_tools"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/gitlab/jobs",
+    "verified_at": "2026-10-31T14:47:36.214574+00:00",
+    "probe_raw_count": 238,
+    "probe_canada_location_count": 65
+  },
+  {
+    "id": "greenhouse-grafanalabs",
+    "name": "Grafana Labs",
+    "type": "greenhouse",
+    "board": "grafanalabs",
+    "url": "https://job-boards.greenhouse.io/grafanalabs",
+    "sectors": [
+      "developer_tools"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/grafanalabs/jobs",
+    "verified_at": "2026-10-31T14:47:36.779339+00:00",
+    "probe_raw_count": 120,
+    "probe_canada_location_count": 18
+  },
+  {
+    "id": "greenhouse-hootsuite",
+    "name": "Hootsuite",
+    "type": "greenhouse",
+    "board": "hootsuite",
+    "url": "https://job-boards.greenhouse.io/hootsuite",
+    "sectors": [
+      "software"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/hootsuite/jobs",
+    "verified_at": "2026-10-31T14:47:19.210769+00:00",
+    "probe_raw_count": 4,
+    "probe_canada_location_count": 1
+  },
+  {
+    "id": "ashby-hopper",
+    "name": "Hopper",
+    "type": "ashby",
+    "board": "hopper",
+    "url": "https://jobs.ashbyhq.com/hopper",
+    "sectors": [
+      "commerce"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/hopper",
+    "verified_at": "2026-10-31T14:47:43.973325+00:00",
+    "probe_raw_count": 18,
+    "probe_canada_location_count": 7
+  },
+  {
+    "id": "greenhouse-instacart",
+    "name": "Instacart",
+    "type": "greenhouse",
+    "board": "instacart",
+    "url": "https://job-boards.greenhouse.io/instacart",
+    "sectors": [
+      "commerce"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/instacart/jobs",
+    "verified_at": "2026-10-31T14:47:44.198725+00:00",
+    "probe_raw_count": 96,
+    "probe_canada_location_count": 34
+  },
+  {
+    "id": "ashby-jane",
+    "name": "Jane",
+    "type": "ashby",
+    "board": "jane",
+    "url": "https://jobs.ashbyhq.com/jane",
+    "sectors": [
+      "healthtech"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/jane",
+    "verified_at": "2026-10-31T14:47:28.854736+00:00",
+    "probe_raw_count": 26,
+    "probe_canada_location_count": 24
+  },
+  {
+    "id": "ashby-jobber",
+    "name": "Jobber",
+    "type": "ashby",
+    "board": "jobber",
+    "url": "https://jobs.ashbyhq.com/jobber",
+    "sectors": [
+      "enterprise"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/jobber",
+    "verified_at": "2026-10-31T14:47:29.160928+00:00",
+    "probe_raw_count": 39,
+    "probe_canada_location_count": 37
+  },
+  {
+    "id": "lever-kepler",
+    "name": "Kepler Communications",
+    "type": "lever",
+    "board": "kepler",
+    "url": "https://jobs.lever.co/kepler",
+    "sectors": [
+      "aerospace"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/kepler",
+    "verified_at": "2026-10-31T14:47:18.912328+00:00",
+    "probe_raw_count": 25,
+    "probe_canada_location_count": 25
+  },
+  {
+    "id": "ashby-koho",
+    "name": "KOHO",
+    "type": "ashby",
+    "board": "koho",
+    "url": "https://jobs.ashbyhq.com/koho",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/koho",
+    "verified_at": "2026-10-31T14:47:43.395986+00:00",
+    "probe_raw_count": 9,
+    "probe_canada_location_count": 9
+  },
+  {
+    "id": "ashby-loopio",
+    "name": "Loopio",
+    "type": "ashby",
+    "board": "loopio",
+    "url": "https://jobs.ashbyhq.com/loopio",
+    "sectors": [
+      "enterprise"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/loopio",
+    "verified_at": "2026-10-31T14:47:43.758923+00:00",
+    "probe_raw_count": 16,
+    "probe_canada_location_count": 13
+  },
+  {
+    "id": "greenhouse-lyft",
+    "name": "Lyft",
+    "type": "greenhouse",
+    "board": "lyft",
+    "url": "https://job-boards.greenhouse.io/lyft",
+    "sectors": [
+      "software"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/lyft/jobs",
+    "verified_at": "2026-10-31T14:47:35.227380+00:00",
+    "probe_raw_count": 170,
+    "probe_canada_location_count": 72
+  },
+  {
+    "id": "lever-magnetforensics",
+    "name": "Magnet Forensics",
+    "type": "lever",
+    "board": "magnetforensics",
+    "url": "https://jobs.lever.co/magnetforensics",
+    "sectors": [
+      "security"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/magnetforensics",
+    "verified_at": "2026-10-31T14:47:27.784725+00:00",
+    "probe_raw_count": 40,
+    "probe_canada_location_count": 20
+  },
+  {
+    "id": "ashby-mecka.ai",
+    "name": "Mecka AI",
+    "type": "ashby",
+    "board": "mecka.ai",
+    "url": "https://jobs.ashbyhq.com/mecka.ai",
+    "sectors": [
+      "robotics"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/mecka.ai",
+    "verified_at": "2026-10-31T14:47:44.445858+00:00",
+    "probe_raw_count": 44,
+    "probe_canada_location_count": 30
+  },
+  {
+    "id": "greenhouse-mercury",
+    "name": "Mercury",
+    "type": "greenhouse",
+    "board": "mercury",
+    "url": "https://job-boards.greenhouse.io/mercury",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/mercury/jobs",
+    "verified_at": "2026-10-31T14:47:42.253426+00:00",
+    "probe_raw_count": 76,
+    "probe_canada_location_count": 58
+  },
+  {
+    "id": "greenhouse-mongodb",
+    "name": "MongoDB",
+    "type": "greenhouse",
+    "board": "mongodb",
+    "url": "https://job-boards.greenhouse.io/mongodb",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/mongodb/jobs",
+    "verified_at": "2026-10-31T14:47:29.652026+00:00",
+    "probe_raw_count": 366,
+    "probe_canada_location_count": 22
+  },
+  {
+    "id": "greenhouse-gomotive",
+    "name": "Motive",
+    "type": "greenhouse",
+    "board": "gomotive",
+    "url": "https://job-boards.greenhouse.io/gomotive",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/gomotive/jobs",
+    "verified_at": "2026-10-31T14:47:44.307289+00:00",
+    "probe_raw_count": 167,
+    "probe_canada_location_count": 17
+  },
+  {
+    "id": "ashby-neofinancial",
+    "name": "Neo Financial",
+    "type": "ashby",
+    "board": "neofinancial",
+    "url": "https://jobs.ashbyhq.com/neofinancial",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/neofinancial",
+    "verified_at": "2026-10-31T14:47:43.525824+00:00",
+    "probe_raw_count": 63,
+    "probe_canada_location_count": 63
+  },
+  {
+    "id": "ashby-notion",
+    "name": "Notion",
+    "type": "ashby",
+    "board": "notion",
+    "url": "https://jobs.ashbyhq.com/notion",
+    "sectors": [
+      "software"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/notion",
+    "verified_at": "2026-10-31T14:47:23.353877+00:00",
+    "probe_raw_count": 148,
+    "probe_canada_location_count": 0,
+    "coverage_note": "Explicitly requested employer; endpoint is active, but no current Canadian listing location was found. Monitor future postings; never assume generic remote permits work in Canada."
+  },
+  {
+    "id": "greenhouse-okta",
+    "name": "Okta",
+    "type": "greenhouse",
+    "board": "okta",
+    "url": "https://job-boards.greenhouse.io/okta",
+    "sectors": [
+      "security"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/okta/jobs",
+    "verified_at": "2026-10-31T14:47:19.916042+00:00",
+    "probe_raw_count": 387,
+    "probe_canada_location_count": 71
+  },
+  {
+    "id": "ashby-openai",
+    "name": "OpenAI",
+    "type": "ashby",
+    "board": "openai",
+    "url": "https://jobs.ashbyhq.com/openai",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/openai",
+    "verified_at": "2026-10-31T14:47:38.198376+00:00",
+    "probe_raw_count": 813,
+    "probe_canada_location_count": 7
+  },
+  {
+    "id": "greenhouse-pagerduty",
+    "name": "PagerDuty",
+    "type": "greenhouse",
+    "board": "pagerduty",
+    "url": "https://job-boards.greenhouse.io/pagerduty",
+    "sectors": [
+      "enterprise"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/pagerduty/jobs",
+    "verified_at": "2026-10-31T14:47:30.236010+00:00",
+    "probe_raw_count": 47,
+    "probe_canada_location_count": 6
+  },
+  {
+    "id": "ashby-perplexity",
+    "name": "Perplexity",
+    "type": "ashby",
+    "board": "perplexity",
+    "url": "https://jobs.ashbyhq.com/perplexity",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/perplexity",
+    "verified_at": "2026-10-31T14:47:38.905351+00:00",
+    "probe_raw_count": 138,
+    "probe_canada_location_count": 4
+  },
+  {
+    "id": "greenhouse-planetlabs",
+    "name": "Planet",
+    "type": "greenhouse",
+    "board": "planetlabs",
+    "url": "https://job-boards.greenhouse.io/planetlabs",
+    "sectors": [
+      "aerospace"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/planetlabs/jobs",
+    "verified_at": "2026-10-31T14:47:24.612461+00:00",
+    "probe_raw_count": 125,
+    "probe_canada_location_count": 3
+  },
+  {
+    "id": "lever-pointclickcare",
+    "name": "PointClickCare",
+    "type": "lever",
+    "board": "pointclickcare",
+    "url": "https://jobs.lever.co/pointclickcare",
+    "sectors": [
+      "healthtech"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/pointclickcare",
+    "verified_at": "2026-10-31T14:47:27.757368+00:00",
+    "probe_raw_count": 70,
+    "probe_canada_location_count": 43
+  },
+  {
+    "id": "ashby-ramp",
+    "name": "Ramp",
+    "type": "ashby",
+    "board": "ramp",
+    "url": "https://jobs.ashbyhq.com/ramp",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/ramp",
+    "verified_at": "2026-10-31T14:47:40.102291+00:00",
+    "probe_raw_count": 171,
+    "probe_canada_location_count": 25
+  },
+  {
+    "id": "greenhouse-reddit",
+    "name": "Reddit",
+    "type": "greenhouse",
+    "board": "reddit",
+    "url": "https://job-boards.greenhouse.io/reddit",
+    "sectors": [
+      "software"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/reddit/jobs",
+    "verified_at": "2026-10-31T14:47:32.545739+00:00",
+    "probe_raw_count": 163,
+    "probe_canada_location_count": 12
+  },
+  {
+    "id": "greenhouse-robinhood",
+    "name": "Robinhood",
+    "type": "greenhouse",
+    "board": "robinhood",
+    "url": "https://job-boards.greenhouse.io/robinhood",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/robinhood/jobs",
+    "verified_at": "2026-10-31T14:47:19.864699+00:00",
+    "probe_raw_count": 160,
+    "probe_canada_location_count": 16
+  },
+  {
+    "id": "greenhouse-roblox",
+    "name": "Roblox",
+    "type": "greenhouse",
+    "board": "roblox",
+    "url": "https://job-boards.greenhouse.io/roblox",
+    "sectors": [
+      "gaming"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/roblox/jobs",
+    "verified_at": "2026-10-31T14:47:33.921913+00:00",
+    "probe_raw_count": 268,
+    "probe_canada_location_count": 1
+  },
+  {
+    "id": "greenhouse-rocketlab",
+    "name": "Rocket Lab",
+    "type": "greenhouse",
+    "board": "rocketlab",
+    "url": "https://job-boards.greenhouse.io/rocketlab",
+    "sectors": [
+      "aerospace"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/rocketlab/jobs",
+    "verified_at": "2026-10-31T14:47:18.911793+00:00",
+    "probe_raw_count": 557,
+    "probe_canada_location_count": 8
+  },
+  {
+    "id": "greenhouse-samsara",
+    "name": "Samsara",
+    "type": "greenhouse",
+    "board": "samsara",
+    "url": "https://job-boards.greenhouse.io/samsara",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/samsara/jobs",
+    "verified_at": "2026-10-31T14:47:29.540221+00:00",
+    "probe_raw_count": 326,
+    "probe_canada_location_count": 32
+  },
+  {
+    "id": "ashby-sentry",
+    "name": "Sentry",
+    "type": "ashby",
+    "board": "sentry",
+    "url": "https://jobs.ashbyhq.com/sentry",
+    "sectors": [
+      "developer_tools"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/sentry",
+    "verified_at": "2026-10-31T14:47:43.770389+00:00",
+    "probe_raw_count": 40,
+    "probe_canada_location_count": 9
+  },
+  {
+    "id": "greenhouse-shakepay",
+    "name": "Shakepay",
+    "type": "greenhouse",
+    "board": "shakepay",
+    "url": "https://job-boards.greenhouse.io/shakepay",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/shakepay/jobs",
+    "verified_at": "2026-10-31T14:47:43.862740+00:00",
+    "probe_raw_count": 9,
+    "probe_canada_location_count": 9
+  },
+  {
+    "id": "ashby-skywatch",
+    "name": "SkyWatch",
+    "type": "ashby",
+    "board": "skywatch",
+    "url": "https://jobs.ashbyhq.com/skywatch",
+    "sectors": [
+      "aerospace"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/skywatch",
+    "verified_at": "2026-10-31T14:47:43.893682+00:00",
+    "probe_raw_count": 5,
+    "probe_canada_location_count": 5
+  },
+  {
+    "id": "greenhouse-stackadapt",
+    "name": "StackAdapt",
+    "type": "greenhouse",
+    "board": "stackadapt",
+    "url": "https://job-boards.greenhouse.io/stackadapt",
+    "sectors": [
+      "data_ai"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/stackadapt/jobs",
+    "verified_at": "2026-10-31T14:47:42.693775+00:00",
+    "probe_raw_count": 76,
+    "probe_canada_location_count": 42
+  },
+  {
+    "id": "greenhouse-stripe",
+    "name": "Stripe",
+    "type": "greenhouse",
+    "board": "stripe",
+    "url": "https://job-boards.greenhouse.io/stripe",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/stripe/jobs",
+    "verified_at": "2026-10-31T14:47:25.643133+00:00",
+    "probe_raw_count": 746,
+    "probe_canada_location_count": 61
+  },
+  {
+    "id": "greenhouse-tailscale",
+    "name": "Tailscale",
+    "type": "greenhouse",
+    "board": "tailscale",
+    "url": "https://job-boards.greenhouse.io/tailscale",
+    "sectors": [
+      "security"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/tailscale/jobs",
+    "verified_at": "2026-10-31T14:47:44.052586+00:00",
+    "probe_raw_count": 58,
+    "probe_canada_location_count": 27
+  },
+  {
+    "id": "lever-telesat",
+    "name": "Telesat",
+    "type": "lever",
+    "board": "telesat",
+    "url": "https://jobs.lever.co/telesat",
+    "sectors": [
+      "aerospace"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/telesat",
+    "verified_at": "2026-10-31T14:47:18.912801+00:00",
+    "probe_raw_count": 53,
+    "probe_canada_location_count": 46
+  },
+  {
+    "id": "greenhouse-tenstorrent",
+    "name": "Tenstorrent",
+    "type": "greenhouse",
+    "board": "tenstorrent",
+    "url": "https://job-boards.greenhouse.io/tenstorrent",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/tenstorrent/jobs",
+    "verified_at": "2026-10-31T14:47:23.979751+00:00",
+    "probe_raw_count": 126,
+    "probe_canada_location_count": 41
+  },
+  {
+    "id": "greenhouse-tenstorrentuniversity",
+    "name": "Tenstorrent",
+    "type": "greenhouse",
+    "board": "tenstorrentuniversity",
+    "url": "https://job-boards.greenhouse.io/tenstorrentuniversity",
+    "sectors": [
+      "embedded"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/tenstorrentuniversity/jobs",
+    "verified_at": "2026-10-31T14:47:24.270586+00:00",
+    "probe_raw_count": 15,
+    "probe_canada_location_count": 7
+  },
+  {
+    "id": "ashby-thinkific",
+    "name": "Thinkific",
+    "type": "ashby",
+    "board": "thinkific",
+    "url": "https://jobs.ashbyhq.com/thinkific",
+    "sectors": [
+      "education"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/thinkific",
+    "verified_at": "2026-10-31T14:47:43.663350+00:00",
+    "probe_raw_count": 3,
+    "probe_canada_location_count": 3
+  },
+  {
+    "id": "greenhouse-toast",
+    "name": "Toast",
+    "type": "greenhouse",
+    "board": "toast",
+    "url": "https://job-boards.greenhouse.io/toast",
+    "sectors": [
+      "enterprise"
+    ],
+    "api_url": "https://boards-api.greenhouse.io/v1/boards/toast/jobs",
+    "verified_at": "2026-10-31T14:47:44.209525+00:00",
+    "probe_raw_count": 328,
+    "probe_canada_location_count": 18
+  },
+  {
+    "id": "lever-waabi",
+    "name": "Waabi",
+    "type": "lever",
+    "board": "waabi",
+    "url": "https://jobs.lever.co/waabi",
+    "sectors": [
+      "robotics"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/waabi",
+    "verified_at": "2026-10-31T14:47:24.621255+00:00",
+    "probe_raw_count": 92,
+    "probe_canada_location_count": 56
+  },
+  {
+    "id": "lever-waveapps",
+    "name": "Wave",
+    "type": "lever",
+    "board": "waveapps",
+    "url": "https://jobs.lever.co/waveapps",
+    "sectors": [
+      "fintech"
+    ],
+    "page_size": 50,
+    "api_url": "https://api.lever.co/v0/postings/waveapps",
+    "verified_at": "2026-10-31T14:47:27.006257+00:00",
+    "probe_raw_count": 8,
+    "probe_canada_location_count": 8
+  },
+  {
+    "id": "ashby-wealthsimple",
+    "name": "Wealthsimple",
+    "type": "ashby",
+    "board": "wealthsimple",
+    "url": "https://jobs.ashbyhq.com/wealthsimple",
+    "sectors": [
+      "fintech"
+    ],
+    "api_url": "https://api.ashbyhq.com/posting-api/job-board/wealthsimple",
+    "verified_at": "2026-10-31T14:47:18.913161+00:00",
+    "probe_raw_count": 42,
+    "probe_canada_location_count": 41
+  }
+]

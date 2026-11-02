@@ -1,0 +1,27 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime data: database, discovered boards, profile, resume text and API keys.
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+secrets.json
+codex_auth.json
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+.idea/
+.vscode/
+node_modules/

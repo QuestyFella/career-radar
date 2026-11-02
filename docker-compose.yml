@@ -1,0 +1,25 @@
+services:
+  career-radar:
+    build: .
+    image: career-radar:latest
+    container_name: career-radar
+    restart: unless-stopped
+    ports:
+      # Change the left side to use another host port. Bind to 127.0.0.1 to keep it local-only:
+      #   - "127.0.0.1:8765:8765"
+      - "8765:8765"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      CAREER_RADAR_DATA: /data
+      TZ: ${TZ:-America/Toronto}
+    volumes:
+      - career-radar-data:/data
+    # Lets the "Custom OpenAI-compatible" provider reach Ollama / LM Studio on the Docker host
+    # at http://host.docker.internal:11434/v1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  career-radar-data:

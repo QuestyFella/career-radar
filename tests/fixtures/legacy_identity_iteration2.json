@@ -1,0 +1,746 @@
+{
+  "purpose": "Synthetic historical fallback and rejection provenance; never production data.",
+  "generator_source_sha256": "126be0fdf88c7df21bd0e9429d5430feb6af37d33e47c8e8927124b568c24632",
+  "iteration1_source_sha256": "1cc42e4c75888a0dac4081674d8420048dd6c2718bb0aea14e9264d72b7285be",
+  "generator_script_sha256": "87680095a52dae36c478b7c5794fe5432505f405d574c0c88a06d8433598a752",
+  "schema_sql": [
+    "CREATE TABLE aliases(source_id TEXT, source_job_id TEXT, job_id TEXT NOT NULL, url TEXT NOT NULL,\n          active INTEGER NOT NULL, last_seen TEXT NOT NULL, PRIMARY KEY(source_id, source_job_id))",
+    "CREATE TABLE jobs(id TEXT PRIMARY KEY, dedup_key TEXT UNIQUE NOT NULL, data TEXT NOT NULL)",
+    "CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+    "CREATE TABLE observations(source_id TEXT, source_job_id TEXT, job_id TEXT NOT NULL,\n          data TEXT NOT NULL, PRIMARY KEY(source_id,source_job_id))",
+    "CREATE TABLE reminders(job_id TEXT, deadline TEXT, band TEXT, emitted_at TEXT,\n          PRIMARY KEY(job_id,deadline,band))",
+    "CREATE TABLE source_rejections(source_id TEXT, source_job_id TEXT, url TEXT NOT NULL,\n          authority INTEGER NOT NULL, last_seen TEXT NOT NULL, PRIMARY KEY(source_id,source_job_id))",
+    "CREATE TABLE sources(id TEXT PRIMARY KEY, data TEXT NOT NULL)",
+    "CREATE INDEX aliases_job ON aliases(job_id)",
+    "CREATE INDEX aliases_url ON aliases(url)",
+    "CREATE INDEX observations_job ON observations(job_id)",
+    "CREATE INDEX rejection_url ON source_rejections(url)"
+  ],
+  "cases": {
+    "legacy_fallback": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": null,
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Junior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 1,
+          "new": 1,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": [
+            "4f1f91f69acc97d6c6e5403f"
+          ]
+        }
+      ],
+      "tables": {
+        "jobs": [
+          {
+            "id": "4f1f91f69acc97d6c6e5403f",
+            "dedup_key": "4f1f91f69acc97d6c6e5403fdf843813f4972f019f6fe9442b17573199828f9c",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}], \"id\": \"4f1f91f69acc97d6c6e5403f\", \"match_key\": \"b7ab119657e9cc1c3d154c7dba45c94cfd53e01cb0158585074a6ffeaa4bbd4d\", \"identity_policy\": \"exact-v1\"}"
+          }
+        ],
+        "aliases": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "url": "https://jobs.example.org/view",
+            "active": 1,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "observations": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}]}"
+          }
+        ],
+        "source_rejections": [],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "legacy_native": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": "PROVEN-NATIVE",
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Junior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 1,
+          "new": 1,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": [
+            "869ce9d3e209e7f11d27a8e5"
+          ]
+        }
+      ],
+      "tables": {
+        "jobs": [
+          {
+            "id": "869ce9d3e209e7f11d27a8e5",
+            "dedup_key": "869ce9d3e209e7f11d27a8e5257da398ddb7ce6b061354a0844609862e6ada91",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"PROVEN-NATIVE\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}], \"id\": \"869ce9d3e209e7f11d27a8e5\", \"match_key\": \"b7ab119657e9cc1c3d154c7dba45c94cfd53e01cb0158585074a6ffeaa4bbd4d\", \"identity_policy\": \"exact-v1\"}"
+          }
+        ],
+        "aliases": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "PROVEN-NATIVE",
+            "job_id": "869ce9d3e209e7f11d27a8e5",
+            "url": "https://jobs.example.org/view",
+            "active": 1,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "observations": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "PROVEN-NATIVE",
+            "job_id": "869ce9d3e209e7f11d27a8e5",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"PROVEN-NATIVE\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}]}"
+          }
+        ],
+        "source_rejections": [],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "legacy_url_native": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": "https://jobs.example.org/view",
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Junior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 1,
+          "new": 1,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": [
+            "4f1f91f69acc97d6c6e5403f"
+          ]
+        }
+      ],
+      "tables": {
+        "jobs": [
+          {
+            "id": "4f1f91f69acc97d6c6e5403f",
+            "dedup_key": "4f1f91f69acc97d6c6e5403fdf843813f4972f019f6fe9442b17573199828f9c",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}], \"id\": \"4f1f91f69acc97d6c6e5403f\", \"match_key\": \"b7ab119657e9cc1c3d154c7dba45c94cfd53e01cb0158585074a6ffeaa4bbd4d\", \"identity_policy\": \"exact-v1\"}"
+          }
+        ],
+        "aliases": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "url": "https://jobs.example.org/view",
+            "active": 1,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "observations": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}]}"
+          }
+        ],
+        "source_rejections": [],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "legacy_negative_fallback": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": null,
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Senior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 1,
+          "new_ids": []
+        }
+      ],
+      "tables": {
+        "jobs": [],
+        "aliases": [],
+        "observations": [],
+        "source_rejections": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "url": "https://jobs.example.org/view",
+            "authority": 3,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "legacy_negative_native": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": "NEGATIVE-NATIVE",
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Senior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 1,
+          "new_ids": []
+        }
+      ],
+      "tables": {
+        "jobs": [],
+        "aliases": [],
+        "observations": [],
+        "source_rejections": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "NEGATIVE-NATIVE",
+            "url": "https://jobs.example.org/view",
+            "authority": 3,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "iteration1_fallback": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": null,
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Junior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        },
+        {
+          "implementation": "iteration1",
+          "input_rows": [],
+          "now": "2026-10-31T15:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 1,
+          "new": 1,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": [
+            "4f1f91f69acc97d6c6e5403f"
+          ]
+        },
+        {
+          "raw": 0,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": []
+        }
+      ],
+      "tables": {
+        "jobs": [
+          {
+            "id": "4f1f91f69acc97d6c6e5403f",
+            "dedup_key": "4f1f91f69acc97d6c6e5403fdf843813f4972f019f6fe9442b17573199828f9c",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}], \"id\": \"4f1f91f69acc97d6c6e5403f\", \"match_key\": \"b7ab119657e9cc1c3d154c7dba45c94cfd53e01cb0158585074a6ffeaa4bbd4d\", \"identity_policy\": \"exact-v2\"}"
+          }
+        ],
+        "aliases": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "url": "https://jobs.example.org/view",
+            "active": 1,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "observations": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}]}"
+          }
+        ],
+        "source_rejections": [],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    "iteration1_native": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": "PROVEN-NATIVE",
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Junior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        },
+        {
+          "implementation": "iteration1",
+          "input_rows": [],
+          "now": "2026-10-31T15:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 1,
+          "new": 1,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": [
+            "869ce9d3e209e7f11d27a8e5"
+          ]
+        },
+        {
+          "raw": 0,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": []
+        }
+      ],
+      "tables": {
+        "jobs": [
+          {
+            "id": "869ce9d3e209e7f11d27a8e5",
+            "dedup_key": "869ce9d3e209e7f11d27a8e5257da398ddb7ce6b061354a0844609862e6ada91",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"PROVEN-NATIVE\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}], \"id\": \"869ce9d3e209e7f11d27a8e5\", \"match_key\": \"b7ab119657e9cc1c3d154c7dba45c94cfd53e01cb0158585074a6ffeaa4bbd4d\", \"identity_policy\": \"exact-v2\"}"
+          }
+        ],
+        "aliases": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "PROVEN-NATIVE",
+            "job_id": "869ce9d3e209e7f11d27a8e5",
+            "url": "https://jobs.example.org/view",
+            "active": 1,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "observations": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "PROVEN-NATIVE",
+            "job_id": "869ce9d3e209e7f11d27a8e5",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T14:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"PROVEN-NATIVE\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}]}"
+          }
+        ],
+        "source_rejections": [],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    "iteration1_negative_fallback": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": null,
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Senior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        },
+        {
+          "implementation": "iteration1",
+          "input_rows": [],
+          "now": "2026-10-31T15:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 1,
+          "new_ids": []
+        },
+        {
+          "raw": 0,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": []
+        }
+      ],
+      "tables": {
+        "jobs": [],
+        "aliases": [],
+        "observations": [],
+        "source_rejections": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "url": "https://jobs.example.org/view",
+            "authority": 3,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    "iteration1_negative_native": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": "NEGATIVE-NATIVE",
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Senior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        },
+        {
+          "implementation": "iteration1",
+          "input_rows": [],
+          "now": "2026-10-31T15:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 1,
+          "new_ids": []
+        },
+        {
+          "raw": 0,
+          "matched": 0,
+          "new": 0,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": []
+        }
+      ],
+      "tables": {
+        "jobs": [],
+        "aliases": [],
+        "observations": [],
+        "source_rejections": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "NEGATIVE-NATIVE",
+            "url": "https://jobs.example.org/view",
+            "authority": 3,
+            "last_seen": "2026-10-31T14:00:00+00:00"
+          }
+        ],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "2"
+          }
+        ]
+      }
+    },
+    "iteration1_promoted_fallback": {
+      "calls": [
+        {
+          "implementation": "historical",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": null,
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Junior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view?ref=OLD-REQUISITION",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T14:00:00+00:00"
+        },
+        {
+          "implementation": "iteration1",
+          "input_rows": [
+            {
+              "source_id": "historical-fixture",
+              "source_job_id": null,
+              "source": "Historical synthetic employer",
+              "source_type": "fixture",
+              "company": "Synthetic Aerospace",
+              "title": "Junior Firmware Developer",
+              "location": "Toronto, ON, Canada",
+              "url": "https://jobs.example.org/view",
+              "description": "Computer science. No prior experience required.",
+              "verification": "direct",
+              "is_closed": false
+            }
+          ],
+          "now": "2026-10-31T15:00:00+00:00"
+        }
+      ],
+      "outcomes": [
+        {
+          "raw": 1,
+          "matched": 1,
+          "new": 1,
+          "updated": 0,
+          "rejected": 0,
+          "new_ids": [
+            "4f1f91f69acc97d6c6e5403f"
+          ]
+        },
+        {
+          "raw": 1,
+          "matched": 1,
+          "new": 0,
+          "updated": 1,
+          "rejected": 0,
+          "new_ids": []
+        }
+      ],
+      "tables": {
+        "jobs": [
+          {
+            "id": "4f1f91f69acc97d6c6e5403f",
+            "dedup_key": "4f1f91f69acc97d6c6e5403fdf843813f4972f019f6fe9442b17573199828f9c",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"url_identity_policy\": \"exact-v2\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"deadline_uncertainty\": null, \"first_seen\": \"2026-10-31T14:00:00+00:00\", \"last_seen\": \"2026-10-31T15:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}], \"id\": \"4f1f91f69acc97d6c6e5403f\", \"match_key\": \"b7ab119657e9cc1c3d154c7dba45c94cfd53e01cb0158585074a6ffeaa4bbd4d\", \"identity_policy\": \"exact-v2\"}"
+          }
+        ],
+        "aliases": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "url": "https://jobs.example.org/view",
+            "active": 1,
+            "last_seen": "2026-10-31T15:00:00+00:00"
+          }
+        ],
+        "observations": [
+          {
+            "source_id": "historical-fixture",
+            "source_job_id": "https://jobs.example.org/view",
+            "job_id": "4f1f91f69acc97d6c6e5403f",
+            "data": "{\"title\": \"Junior Firmware Developer\", \"company\": \"Synthetic Aerospace\", \"location\": \"Toronto, ON, Canada\", \"url\": \"https://jobs.example.org/view\", \"url_identity_policy\": \"exact-v2\", \"description\": \"Computer science. No prior experience required.\", \"level\": \"entry_level\", \"category\": \"Embedded & robotics\", \"tags\": [\"aerospace\", \"embedded\", \"ontario\"], \"priority_score\": 100, \"priority_reasons\": [\"Canadian early-career opportunity\", \"Aerospace / space interest\", \"Embedded, robotics or flight software interest\", \"Ontario location\"], \"eligibility_notes\": [\"Potential match: confirm the employer's full requirements and work authorization.\"], \"posted_at\": null, \"deadline\": null, \"deadline_kind\": null, \"deadline_date\": null, \"deadline_evidence\": null, \"deadline_source_url\": null, \"deadline_uncertainty\": null, \"first_seen\": \"2026-10-31T15:00:00+00:00\", \"last_seen\": \"2026-10-31T15:00:00+00:00\", \"active\": true, \"status\": \"new\", \"verification\": \"direct\", \"salary\": null, \"source_id\": \"historical-fixture\", \"source_job_id\": \"https://jobs.example.org/view\", \"sources\": [{\"name\": \"Historical synthetic employer\", \"url\": \"https://jobs.example.org/view\", \"type\": \"fixture\"}]}"
+          }
+        ],
+        "source_rejections": [],
+        "sources": [],
+        "reminders": [],
+        "meta": [
+          {
+            "key": "identity_policy_version",
+            "value": "2"
+          }
+        ]
+      }
+    }
+  }
+}

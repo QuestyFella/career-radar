@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b302e">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="A self-hosted radar for Canadian internships, co-ops, new-grad and entry-level tech roles.">
+  <title>Career Radar — Canadian internships, co-ops, new-grad and entry-level tech roles</title>
+  <link rel="icon" href="/static/radar.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 6.1A8 8 0 0 1 19.8 11M4.2 13A8 8 0 0 0 17.9 17.9"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+      <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3h7v7m0-7L10 14M10 4H4v16h16v-6"/></symbol>
+      <symbol id="i-signal" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.3.9-4.6 4.5 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></symbol>
+      <symbol id="i-location" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2"/></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><path d="m9 15 6-6m-7 3-3 3a4 4 0 0 0 6 6l3-3m-4-12 3-3a4 4 0 0 1 6 6l-3 3"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+      <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    </defs>
+  </svg>
+
+  <aside class="sidebar" aria-label="Workspace navigation">
+    <a class="brand" href="/" aria-label="Career Radar home">
+      <img src="/static/radar.svg" width="36" height="36" alt="">
+      <span>Career Radar<span class="brand-caption">Your next step, in view.</span></span>
+    </a>
+    <div class="workspace-label">YOUR WORKSPACE</div>
+    <nav class="workspace-nav" aria-label="Workspace">
+      <button type="button" class="nav-item is-active" data-view="feed" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg><span>Opportunities</span><span class="nav-count" id="nav-total">—</span></button>
+      <button type="button" class="nav-item" data-view="saved"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg><span>Saved</span><span class="nav-count" id="nav-saved">—</span></button>
+      <button type="button" class="nav-item" data-view="applied"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>Applied</span><span class="nav-count" id="nav-applied">—</span></button>
+      <button type="button" class="nav-item" data-view="dismissed"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg><span>Dismissed</span></button>
+      <div class="nav-divider" aria-hidden="true"></div>
+      <button type="button" class="nav-item" data-view="profile"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg><span>Profile</span><span class="health-dot" id="nav-profile" aria-hidden="true"></span></button>
+      <button type="button" class="nav-item" data-view="sources"><svg class="icon" aria-hidden="true"><use href="#i-signal"/></svg><span>Sources</span><span class="health-dot" id="nav-health" aria-hidden="true"></span></button>
+      <button type="button" class="nav-item" data-view="discovery"><svg class="icon" aria-hidden="true"><use href="#i-compass"/></svg><span>Discovery</span></button>
+      <button type="button" class="nav-item" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-gear"/></svg><span>Settings</span></button>
+    </nav>
+    <section class="scope-note" aria-labelledby="scope-title">
+      <span class="scope-eyebrow" id="scope-title">A WIDER RADAR</span>
+      <p>Canada only.<br>More than one way into tech.</p>
+      <span>Software, data, hardware and the roles in between.</span>
+    </section>
+    <div class="sidebar-bottom">
+      <div class="live-indicator"><span class="status-dot" id="connection-dot"></span><span id="connection-label">Connecting…</span></div>
+      <div class="poll-note">View updates every 60 seconds</div>
+      <button type="button" class="owner" data-view="profile" id="owner-button"><span class="owner-avatar" id="owner-avatar" aria-hidden="true"><svg class="icon"><use href="#i-user"/></svg></span><span class="owner-text"><strong id="owner-name">Your workspace</strong><span id="owner-caption">Self-hosted</span></span></button>
+    </div>
+  </aside>
+
+  <main id="main" class="main" tabindex="-1">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">CANADA / EARLY CAREERS</div>
+        <h1 id="page-title">Opportunities<span class="title-dot">.</span></h1>
+        <p class="page-subtitle" id="page-subtitle">Find your next move, without the noise.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="button button-secondary" id="export-button" title="Download the CSV export. Current filters do not limit the export."><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span>Export CSV</span></button>
+        <button type="button" class="button button-primary" id="refresh-button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg><span>Refresh sources</span></button>
+      </div>
+    </header>
+
+    <div class="freshness-bar">
+      <div class="freshness-main"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span id="freshness-text">Checking source freshness…</span><span class="freshness-separator" aria-hidden="true">·</span><button type="button" class="text-button" data-view="sources" id="source-summary">Source coverage</button></div>
+      <span class="next-refresh" id="next-refresh"></span>
+    </div>
+    <div class="inline-message warning-message" id="status-warning" role="alert" hidden><span id="status-warning-text"></span><button type="button" class="text-button" id="stats-retry">Retry</button></div>
+    <div class="collection-note" id="collection-note" role="status" hidden><span class="spinner" aria-hidden="true"></span><span>Checking sources. New results appear here as the refresh completes.</span></div>
+
+    <section class="summary-strip" id="summary-strip" aria-label="Workspace totals">
+      <dl class="summary-item"><dt>Open roles</dt><dd id="stat-total">—</dd></dl>
+      <dl class="summary-item"><dt>New today</dt><dd id="stat-new">—</dd></dl>
+      <dl class="summary-item summary-priority"><dt>Priority matches</dt><dd id="stat-priority">—</dd></dl>
+      <dl class="summary-item"><dt>Closing in 7 days</dt><dd id="stat-closing">—</dd></dl>
+    </section>
+
+    <section id="jobs-view" aria-label="Find opportunities">
+      <div class="preference-note" id="preference-note"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg><span id="preference-text">Loading your ranking preferences…</span><button type="button" class="text-button preference-link" data-view="profile" id="preference-link">Edit profile</button></div>
+      <form id="search-form" class="search-form" role="search">
+        <svg class="icon search-icon" aria-hidden="true"><use href="#i-search"/></svg>
+        <label class="sr-only" for="search-input">Search roles, companies or skills</label>
+        <input type="search" id="search-input" name="q" placeholder="Search roles, companies, skills…" autocomplete="off" maxlength="300">
+        <kbd class="search-shortcut" aria-hidden="true">/</kbd>
+        <button class="button button-primary" type="submit">Search<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </form>
+      <div class="filters">
+        <fieldset class="role-filters">
+          <legend>Role type</legend>
+          <div class="role-options">
+            <label class="role-chip"><input type="radio" name="level" value="" checked><span>All roles</span></label>
+            <label class="role-chip"><input type="radio" name="level" value="internship"><span>Internship</span></label>
+            <label class="role-chip"><input type="radio" name="level" value="co_op"><span>Co-op</span></label>
+            <label class="role-chip"><input type="radio" name="level" value="new_grad"><span>New grad</span></label>
+            <label class="role-chip"><input type="radio" name="level" value="entry_level"><span>Entry level</span></label>
+          </div>
+        </fieldset>
+        <div class="filter-row">
+          <div class="filter-field category-field"><label for="category-filter">Category</label><select id="category-filter"><option value="">All categories</option></select></div>
+          <div class="filter-field location-field"><label for="location-filter">Location</label><input id="location-filter" type="search" list="location-options" placeholder="Anywhere in Canada" autocomplete="off" maxlength="200"><datalist id="location-options"></datalist></div>
+          <div class="filter-field deadline-field"><label for="deadline-filter">Deadline</label><select id="deadline-filter"><option value="">Any deadline</option><option value="7">Next 7 days</option><option value="30">Next 30 days</option></select></div>
+          <label class="priority-toggle" id="priority-toggle"><input type="checkbox" id="priority-filter" aria-describedby="priority-hint"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg><span>Priority only</span></label><span class="sr-only" id="priority-hint"></span>
+          <button type="button" class="text-button reset-button" id="reset-filters" hidden>Reset filters</button>
+        </div>
+      </div>
+      <div class="results-toolbar">
+        <div class="result-title"><h2 id="results-heading" tabindex="-1">All opportunities</h2><span class="result-count" id="result-count">Loading…</span></div>
+        <div class="result-controls"><label class="closed-toggle"><input type="checkbox" id="include-closed">Include closed</label><label class="sort-label" for="sort-filter">Sort by</label><select id="sort-filter" aria-label="Sort opportunities"><option value="priority">Best match</option><option value="newest">Newest</option><option value="deadline">Deadline</option></select></div>
+      </div>
+      <div class="inline-message error-message" id="jobs-error" role="alert" hidden><span id="jobs-error-text"></span><button type="button" class="button button-secondary" id="jobs-retry">Try again</button></div>
+      <div id="jobs-loading" class="loading-state" role="status"><span class="spinner" aria-hidden="true"></span><span>Loading opportunities…</span></div>
+      <div id="jobs-empty" class="empty-state" hidden>
+        <div class="empty-mark" aria-hidden="true"><svg class="icon"><use href="#i-search"/></svg></div><h3 id="empty-title">No matching roles</h3><p id="empty-text">Try a broader search or clear a filter.</p><button type="button" id="empty-action" class="button button-secondary">Clear filters</button>
+      </div>
+      <ol id="job-list" class="job-list" aria-label="Opportunities" aria-busy="true"></ol>
+      <nav id="pagination" class="pagination" aria-label="Results pages" hidden>
+        <span id="page-range"></span><div class="pagination-controls"><button type="button" class="button button-secondary" id="previous-page">Previous</button><span class="page-number" id="page-number"></span><button type="button" class="button button-secondary" id="next-page">Next<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+      </nav>
+    </section>
+
+    <!-- Sources -->
+    <section id="sources-view" class="sources-view" aria-labelledby="sources-heading" hidden>
+      <div class="source-intro"><h2 id="sources-heading" tabindex="-1">Coverage, not guesswork.</h2><p>A failed check is not an empty board. Restricted and limited sources stay visible here. Older listings may remain in your radar; always confirm on the original source.</p></div>
+      <div id="source-counts" class="source-counts" aria-label="Source status totals"></div>
+      <div id="source-origin-counts" class="source-counts origin-counts" aria-label="Source origin totals"></div>
+      <div class="source-toolbar">
+        <p id="sources-checked">Checking source status…</p>
+        <div class="source-filters">
+          <div class="filter-field"><label for="source-search">Search sources</label><input type="search" id="source-search" placeholder="Name, URL or keywords" autocomplete="off" maxlength="120"></div>
+          <div class="filter-field"><label for="source-filter">Health</label><select id="source-filter"><option value="all">All sources</option><option value="attention">Needs attention</option><option value="ok">Working</option><option value="pending">Not checked</option><option value="disabled">Disabled</option></select></div>
+          <div class="filter-field"><label for="source-origin-filter">Origin</label><select id="source-origin-filter"><option value="">All origins</option><option value="builtin">Built-in</option><option value="discovered">Discovered</option><option value="user">Added by you</option></select></div>
+          <div class="filter-field"><label for="source-type-filter">Type</label><select id="source-type-filter"><option value="">All types</option></select></div>
+        </div>
+      </div>
+      <div class="inline-message error-message" id="sources-error" role="alert" hidden><span id="sources-error-text"></span><button type="button" class="button button-secondary" id="sources-retry">Try again</button></div>
+      <div class="loading-state" id="sources-loading" role="status"><span class="spinner" aria-hidden="true"></span><span>Loading sources…</span></div>
+      <div class="empty-state" id="sources-empty" hidden><h3 id="sources-empty-title">No sources to show</h3><p id="sources-empty-text">Source checks will appear here when they are available.</p></div>
+      <ul id="source-list" class="source-list" aria-label="Sources"></ul>
+      <div class="list-more"><button type="button" class="button button-secondary" id="source-more" hidden>Show more sources</button></div>
+      <p class="source-footnote">Matched counts are per source and can overlap. Job totals are deduplicated. “Working” describes the last check, not guaranteed eligibility or availability.</p>
+
+      <div class="panel-grid">
+        <section class="panel" aria-labelledby="add-board-heading">
+          <h3 id="add-board-heading">Add a board</h3>
+          <p class="panel-help" id="board-help">Paste one or more employer careers-board addresses, one per line (up to 10). Career Radar checks each one live, read-only, before you add it.</p>
+          <div class="field">
+            <label for="board-urls">Careers board URLs</label>
+            <textarea id="board-urls" rows="4" spellcheck="false" autocomplete="off" placeholder="https://jobs.lever.co/example&#10;https://job-boards.greenhouse.io/example" aria-describedby="board-help"></textarea>
+          </div>
+          <details class="shape-details" id="board-shapes">
+            <summary>Supported board addresses</summary>
+            <ul class="shape-list">
+              <li><strong>Greenhouse</strong> boards.greenhouse.io/<em>name</em> or job-boards.greenhouse.io/<em>name</em></li>
+              <li><strong>Lever</strong> jobs.lever.co/<em>name</em></li>
+              <li><strong>Ashby</strong> jobs.ashbyhq.com/<em>name</em></li>
+              <li><strong>Workday</strong> <em>company</em>.wd3.myworkdayjobs.com/<em>Site</em></li>
+              <li><strong>SmartRecruiters</strong> jobs.smartrecruiters.com/<em>Company</em></li>
+              <li><strong>Workable</strong> apply.workable.com/<em>name</em> or <em>name</em>.workable.com</li>
+              <li><strong>Recruitee</strong> <em>name</em>.recruitee.com</li>
+              <li><strong>BambooHR</strong> <em>name</em>.bamboohr.com/careers</li>
+            </ul>
+          </details>
+          <div class="form-actions"><button type="button" class="button button-primary" id="board-check">Check boards</button><span class="form-status" id="board-check-status" role="status" aria-live="polite"></span></div>
+          <div class="inline-message warning-message stacked-message" id="board-unsupported" hidden><div><strong>Not a supported board address</strong><p>These addresses are not one of the supported board systems above. Look for the employer’s Greenhouse, Lever, Ashby, Workday or similar job-board link on their careers page.</p><ul id="board-unsupported-list"></ul></div></div>
+          <ul class="candidate-list" id="board-candidates" aria-label="Checked boards"></ul>
+        </section>
+
+        <form class="panel" id="search-source-form" aria-labelledby="search-source-heading" novalidate>
+          <h3 id="search-source-heading">Add a keyword search</h3>
+          <p class="panel-help">Watch a public job search for your own keywords. Results are limited to Canada and early-career roles.</p>
+          <div class="field"><label for="search-source-type">Search</label><select id="search-source-type"><option value="linkedin">LinkedIn public job search</option><option value="jobbank">Job Bank Canada</option></select></div>
+          <div class="field"><label for="search-source-keywords">Keywords</label><input type="text" id="search-source-keywords" minlength="2" maxlength="80" autocomplete="off" placeholder="e.g. firmware intern" aria-describedby="search-source-help"><p class="field-help" id="search-source-help">2–80 characters.</p></div>
+          <div class="field"><label for="search-source-name">Name <span class="optional">(optional)</span></label><input type="text" id="search-source-name" maxlength="120" autocomplete="off"></div>
+          <div class="form-actions"><button type="submit" class="button button-primary" id="search-source-submit"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span>Add search</span></button><span class="form-status" id="search-source-status" role="status" aria-live="polite"></span></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Profile -->
+    <section id="profile-view" class="config-view" aria-labelledby="profile-heading" hidden>
+      <div class="source-intro"><h2 id="profile-heading" tabindex="-1">Your profile, your ranking.</h2><p>Your profile stays on this server. It decides which roles rank higher and which count as Priority matches. Nothing about you is assumed: fields you leave empty are simply not used.</p></div>
+      <div class="inline-message error-message" id="profile-error" role="alert" hidden><span id="profile-error-text"></span><button type="button" class="button button-secondary" id="profile-retry">Try again</button></div>
+
+      <section class="panel" aria-labelledby="resume-heading">
+        <h3 id="resume-heading">Resume</h3>
+        <p class="panel-help">Upload a PDF resume to fill in your profile. Found skills, education and experience are merged into your saved profile; you can edit everything below.</p>
+        <div class="drop-zone" id="resume-drop">
+          <svg class="icon drop-icon" aria-hidden="true"><use href="#i-upload"/></svg>
+          <p><strong>Drop a PDF here</strong> or</p>
+          <button type="button" class="button button-secondary" id="resume-choose">Choose PDF…</button>
+          <input type="file" id="resume-file" accept="application/pdf,.pdf" hidden>
+          <span class="muted">PDF only, up to 8 MB.</span>
+        </div>
+        <fieldset class="option-group">
+          <legend>How to read it</legend>
+          <div class="option-list">
+          <label class="option"><input type="radio" name="resume-llm" value="auto" checked><span><strong>Use my LLM if configured</strong><small>Otherwise Career Radar reads it on this server.</small></span></label>
+          <label class="option"><input type="radio" name="resume-llm" value="on"><span><strong>Always use LLM</strong><small>Fails if no LLM is set up in Settings.</small></span></label>
+          <label class="option"><input type="radio" name="resume-llm" value="off"><span><strong>Don’t send my resume to an LLM</strong><small>Read on this server only.</small></span></label>
+          </div>
+        </fieldset>
+        <p class="privacy-note">Privacy: your resume text is sent to the selected LLM provider only when the LLM is used. <span id="resume-llm-hint"></span></p>
+        <div class="inline-message error-message" id="resume-error" hidden><span id="resume-error-text"></span></div>
+        <div class="upload-status" id="resume-status" hidden><span class="spinner" aria-hidden="true"></span><span id="resume-status-text"></span><progress id="resume-progress" max="100" value="0" aria-label="Upload progress"></progress></div>
+        <div class="resume-result" id="resume-result" hidden>
+          <h4 id="resume-result-heading" tabindex="-1">Stored resume</h4>
+          <dl class="fact-grid" id="resume-facts"></dl>
+          <div id="resume-extracted-block" hidden><h4>Added from this upload</h4><p class="muted" id="resume-extracted"></p></div>
+          <div id="resume-warnings-block" hidden><h4>Warnings</h4><ul class="warning-list" id="resume-warnings"></ul></div>
+          <div class="form-actions"><button type="button" class="button button-secondary" id="resume-delete">Delete stored resume</button></div>
+        </div>
+        <p class="muted" id="resume-none">No resume stored.</p>
+      </section>
+
+      <div class="loading-state" id="profile-loading" role="status" hidden><span class="spinner" aria-hidden="true"></span><span>Loading your profile…</span></div>
+      <form class="panel" id="profile-form" aria-labelledby="profile-form-heading" novalidate hidden>
+        <div class="panel-heading"><h3 id="profile-form-heading">Profile</h3><span class="muted" id="profile-meta"></span></div>
+        <div class="form-grid">
+          <div class="field"><label for="pf-name">Name</label><input type="text" id="pf-name" maxlength="120" autocomplete="name"></div>
+          <div class="field"><label for="pf-email">Email</label><input type="email" id="pf-email" maxlength="200" autocomplete="email"></div>
+          <div class="field"><label for="pf-location">Location</label><input type="text" id="pf-location" maxlength="200" autocomplete="address-level2" placeholder="e.g. Waterloo, ON"></div>
+          <div class="field"><label for="pf-headline">Headline</label><input type="text" id="pf-headline" maxlength="200" placeholder="e.g. Computer engineering student"></div>
+          <div class="field"><label for="pf-graduation">Graduation</label><input type="text" id="pf-graduation" maxlength="40" placeholder="e.g. 2027-04" aria-describedby="pf-graduation-help"><p class="field-help" id="pf-graduation-help">Only used to show you new-grad roles; never assumed.</p></div>
+        </div>
+
+        <fieldset class="option-group">
+          <legend>Role levels you want</legend>
+          <div class="inline-options">
+            <label class="check-option"><input type="checkbox" name="pf-level" value="internship"><span>Internship</span></label>
+            <label class="check-option"><input type="checkbox" name="pf-level" value="co_op"><span>Co-op</span></label>
+            <label class="check-option"><input type="checkbox" name="pf-level" value="new_grad"><span>New grad</span></label>
+            <label class="check-option"><input type="checkbox" name="pf-level" value="entry_level"><span>Entry level</span></label>
+          </div>
+          <p class="field-help">Preferred levels rank higher. None selected means all levels.</p>
+        </fieldset>
+
+        <div class="chip-grid">
+          <div class="field chip-field"><label for="pf-skills-input">Skills</label><ul class="chip-list" id="pf-skills-list" aria-label="Skills"></ul><div class="chip-entry"><input type="text" id="pf-skills-input" autocomplete="off" placeholder="e.g. Python, C++" aria-describedby="pf-skills-help"><button type="button" class="button button-secondary" id="pf-skills-add">Add</button></div><p class="field-help" id="pf-skills-help">Press Enter or comma to add.</p><p class="field-message" id="pf-skills-message" aria-live="polite"></p></div>
+          <div class="field chip-field"><label for="pf-interests-input">Interests</label><ul class="chip-list" id="pf-interests-list" aria-label="Interests"></ul><div class="chip-entry"><input type="text" id="pf-interests-input" autocomplete="off" placeholder="e.g. embedded, robotics" aria-describedby="pf-interests-help"><button type="button" class="button button-secondary" id="pf-interests-add">Add</button></div><p class="field-help" id="pf-interests-help">Roles matching these rank higher and count as Priority matches.</p><p class="field-message" id="pf-interests-message" aria-live="polite"></p></div>
+          <div class="field chip-field"><label for="pf-locations-input">Preferred locations</label><ul class="chip-list" id="pf-locations-list" aria-label="Preferred locations"></ul><div class="chip-entry"><input type="text" id="pf-locations-input" autocomplete="off" placeholder="e.g. Toronto, Remote" aria-describedby="pf-locations-help"><button type="button" class="button button-secondary" id="pf-locations-add">Add</button></div><p class="field-help" id="pf-locations-help">Press Enter to add each place, for example “Toronto, ON” or “Remote”.</p><p class="field-message" id="pf-locations-message" aria-live="polite"></p></div>
+          <div class="field chip-field"><label for="pf-exclude-input">Exclude keywords</label><ul class="chip-list" id="pf-exclude-list" aria-label="Excluded keywords"></ul><div class="chip-entry"><input type="text" id="pf-exclude-input" autocomplete="off" placeholder="e.g. sales" aria-describedby="pf-exclude-help"><button type="button" class="button button-secondary" id="pf-exclude-add">Add</button></div><p class="field-help" id="pf-exclude-help">Titles containing these rank lower.</p><p class="field-message" id="pf-exclude-message" aria-live="polite"></p></div>
+          <div class="field chip-field"><label for="pf-links-input">Links</label><ul class="chip-list" id="pf-links-list" aria-label="Links"></ul><div class="chip-entry"><input type="url" id="pf-links-input" autocomplete="off" placeholder="https://github.com/…" aria-describedby="pf-links-help"><button type="button" class="button button-secondary" id="pf-links-add">Add</button></div><p class="field-help" id="pf-links-help">Full web addresses, for example your GitHub or portfolio.</p><p class="field-message" id="pf-links-message" aria-live="polite"></p></div>
+        </div>
+
+        <fieldset class="row-group">
+          <legend>Education</legend>
+          <ol class="row-list" id="pf-education-list"></ol>
+          <p class="muted" id="pf-education-empty">No education added.</p>
+          <button type="button" class="text-button" id="pf-education-add"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add education</button>
+        </fieldset>
+        <fieldset class="row-group">
+          <legend>Experience</legend>
+          <ol class="row-list" id="pf-experience-list"></ol>
+          <p class="muted" id="pf-experience-empty">No experience added.</p>
+          <button type="button" class="text-button" id="pf-experience-add"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add experience</button>
+        </fieldset>
+
+        <div class="form-actions sticky-actions">
+          <button type="submit" class="button button-primary" id="profile-save">Save profile</button>
+          <button type="button" class="button button-secondary" id="profile-reset">Reset profile</button>
+          <span class="form-status" id="profile-status" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- Discovery -->
+    <section id="discovery-view" class="config-view" aria-labelledby="discovery-heading" hidden>
+      <div class="source-intro"><h2 id="discovery-heading" tabindex="-1">Boards you didn’t know to look for.</h2><p>Discovery reads employer job-board links found in collected postings and lead files, verifies each one with a live public API check, and keeps boards that currently list Canadian technical roles. Boards that stop qualifying are re-checked and dropped. The optional LLM scout suggests new employers; its suggestions are verified the same way before anything is added.</p></div>
+      <div class="inline-message error-message" id="discovery-error" role="alert" hidden><span id="discovery-error-text"></span><button type="button" class="button button-secondary" id="discovery-retry">Try again</button></div>
+      <div class="loading-state" id="discovery-loading" role="status" hidden><span class="spinner" aria-hidden="true"></span><span>Loading discovery status…</span></div>
+      <dl class="stat-grid" aria-label="Discovery totals">
+        <div><dt>Discovered boards</dt><dd id="disc-discovered">—</dd></div>
+        <div><dt>Curated boards</dt><dd id="disc-curated">—</dd></div>
+        <div><dt>Candidates checked</dt><dd id="disc-checked">—</dd></div>
+      </dl>
+      <div class="source-counts" id="disc-by-status" aria-label="Checked candidates by result"></div>
+      <div class="collection-note" id="discovery-running" role="status" hidden><span class="spinner" aria-hidden="true"></span><span id="discovery-running-text">Discovery is running. Results appear here when it finishes.</span></div>
+      <div class="form-actions">
+        <button type="button" class="button button-primary" id="discovery-run"><svg class="icon" aria-hidden="true"><use href="#i-compass"/></svg><span>Run discovery now</span></button>
+        <button type="button" class="button button-secondary" id="scout-run" aria-describedby="scout-hint"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg><span>Run LLM scout now</span></button>
+        <span class="form-status" id="scout-hint"></span>
+        <button type="button" class="text-button" data-view="settings" id="scout-settings-link" hidden>Set up an LLM</button>
+      </div>
+      <div class="panel-grid">
+        <section class="panel" aria-labelledby="disc-last-heading"><h3 id="disc-last-heading">Last discovery run</h3><div id="disc-last"><p class="muted">No discovery run recorded yet.</p></div></section>
+        <section class="panel" aria-labelledby="scout-last-heading"><h3 id="scout-last-heading">LLM scout</h3><p class="muted" id="scout-state"></p><div id="scout-last"><p class="muted">No scout run recorded yet.</p></div></section>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings-view" class="config-view" aria-labelledby="settings-heading" hidden>
+      <div class="source-intro"><h2 id="settings-heading" tabindex="-1">Your radar, your rules.</h2><p>Career Radar works without a language model. An LLM only helps read your resume and scout for new employers. Keys are stored on this server and are never shown again after you save them.</p></div>
+      <div class="inline-message error-message" id="settings-error" role="alert" hidden><span id="settings-error-text"></span><button type="button" class="button button-secondary" id="settings-retry">Try again</button></div>
+      <div class="loading-state" id="settings-loading" role="status" hidden><span class="spinner" aria-hidden="true"></span><span>Loading settings…</span></div>
+      <div id="settings-content" hidden>
+
+      <form class="panel" id="llm-form" aria-labelledby="llm-heading" novalidate>
+        <div class="panel-heading"><h3 id="llm-heading">Language model</h3><span class="badge" id="llm-configured">—</span></div>
+        <div class="form-grid">
+          <div class="field"><label for="llm-provider">Provider</label><select id="llm-provider" aria-describedby="llm-provider-note"><option value="">None — don’t use an LLM</option></select><p class="field-help" id="llm-provider-note"></p></div>
+          <div class="field" id="llm-model-field"><label for="llm-model">Model</label><div class="input-with-button"><input type="text" id="llm-model" list="llm-model-options" maxlength="200" autocomplete="off" aria-describedby="llm-models-status"><button type="button" class="button button-secondary" id="llm-load-models">Load models</button></div><datalist id="llm-model-options"></datalist><p class="field-help" id="llm-models-status" role="status" aria-live="polite"></p></div>
+          <div class="field" id="llm-base-url-field" hidden><label for="llm-base-url">Base URL</label><input type="url" id="llm-base-url" maxlength="300" autocomplete="off" placeholder="http://localhost:11434/v1" aria-describedby="llm-base-url-help"><p class="field-help" id="llm-base-url-help">The OpenAI-compatible endpoint of your server (for example Ollama or LM Studio).</p></div>
+        </div>
+
+        <div class="subpanel" id="llm-key-field" hidden>
+          <div class="field"><label for="llm-key" id="llm-key-label">API key</label><input type="password" id="llm-key" autocomplete="new-password" spellcheck="false" maxlength="500" aria-describedby="llm-key-status"><p class="field-help" id="llm-key-status">Not set</p></div>
+          <div class="form-actions"><button type="button" class="button button-secondary" id="llm-key-save">Save key</button><button type="button" class="button button-quiet" id="llm-key-clear">Clear key</button><a class="external-text" id="llm-key-docs" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" hidden>Get an API key <svg class="icon" aria-hidden="true"><use href="#i-external"/></svg></a></div>
+        </div>
+
+        <div class="subpanel" id="llm-codex-field" hidden>
+          <p id="llm-codex-status">Not signed in.</p>
+          <div class="form-actions"><button type="button" class="button button-secondary" id="llm-codex-login">Sign in with ChatGPT</button><button type="button" class="button button-quiet" id="llm-codex-logout" hidden>Sign out</button></div>
+          <div class="device-code" id="llm-codex-code" hidden>
+            <p id="llm-codex-code-label" tabindex="-1">Open the sign-in page and enter this code:</p>
+            <div class="device-code-row"><strong class="device-code-value" id="llm-codex-user-code"></strong><button type="button" class="button button-secondary" id="llm-codex-copy">Copy code</button></div>
+            <a class="button button-primary" id="llm-codex-link" target="_blank" rel="noopener">Open sign-in page<svg class="icon" aria-hidden="true"><use href="#i-external"/></svg></a>
+            <p class="field-help" id="llm-codex-url"></p>
+            <p class="form-status" id="llm-codex-poll" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="button button-primary" id="llm-save">Save LLM settings</button>
+          <button type="button" class="button button-secondary" id="llm-test">Test connection</button>
+          <span class="form-status" id="llm-form-status" role="status" aria-live="polite"></span>
+        </div>
+        <div class="test-result" id="llm-test-result" hidden></div>
+      </form>
+
+      <form class="panel" id="schedule-form" aria-labelledby="schedule-heading" novalidate>
+        <div class="panel-heading"><h3 id="schedule-heading">Schedule</h3><span class="muted">Times are in <span id="schedule-timezone">America/Toronto</span></span></div>
+        <label class="check-option"><input type="checkbox" id="sch-enabled"><span>Run automatically</span></label>
+        <fieldset class="row-group">
+          <legend>Collection times</legend>
+          <ol class="row-list time-list" id="sch-collect-list"></ol>
+          <p class="muted" id="sch-collect-empty">No collection times. Sources are only checked when you press Refresh.</p>
+          <button type="button" class="text-button" id="sch-collect-add"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add a time</button>
+        </fieldset>
+        <div class="form-grid">
+          <div class="field"><label for="sch-discovery-time">Discovery time</label><input type="time" id="sch-discovery-time" required></div>
+          <div class="field"><label for="sch-collect-budget">Collection budget (minutes)</label><input type="number" id="sch-collect-budget" min="5" max="180" step="1" inputmode="numeric"></div>
+          <div class="field"><label for="sch-discovery-budget">Discovery budget (minutes)</label><input type="number" id="sch-discovery-budget" min="2" max="120" step="1" inputmode="numeric"></div>
+        </div>
+        <label class="check-option"><input type="checkbox" id="sch-scout-enabled"><span>Run the LLM scout automatically</span></label>
+        <div class="form-grid">
+          <div class="field"><label for="sch-scout-time">Scout time</label><input type="time" id="sch-scout-time" required></div>
+          <div class="field"><label for="sch-scout-themes">Themes per scout run</label><input type="number" id="sch-scout-themes" min="1" max="6" step="1" inputmode="numeric" aria-describedby="sch-scout-themes-help"><p class="field-help" id="sch-scout-themes-help">1–6. More themes find more employers but use more LLM requests.</p></div>
+        </div>
+        <div class="form-actions"><button type="submit" class="button button-primary" id="schedule-save">Save schedule</button><span class="form-status" id="schedule-form-status" role="status" aria-live="polite"></span></div>
+        <h4 class="subheading">Recent and upcoming runs</h4>
+        <p class="muted" id="schedule-runner"></p>
+        <ul class="status-list" id="schedule-status-list"></ul>
+      </form>
+      </div>
+      <p class="source-footnote" id="settings-version"></p>
+    </section>
+
+    <footer class="page-footer"><span>Built for your next chapter.</span><span>Canada only · Confirm requirements with the employer.</span></footer>
+    <noscript><div class="inline-message error-message">Career Radar needs JavaScript to load real opportunities and save your progress.</div></noscript>
+  </main>
+
+  <dialog id="job-dialog" class="job-dialog" aria-labelledby="detail-title">
+    <div class="detail-shell">
+      <div class="detail-topbar"><span>ON YOUR RADAR</span><div><button type="button" class="button button-quiet" id="copy-link"><svg class="icon" aria-hidden="true"><use href="#i-link"/></svg>Copy link</button><button type="button" class="icon-button" id="close-detail" aria-label="Close job details" autofocus><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div></div>
+      <div id="detail-loading" class="loading-state" role="status"><span class="spinner" aria-hidden="true"></span><span>Loading job details…</span></div>
+      <div id="detail-error" class="detail-error" role="alert" hidden><h2 id="detail-error-title">Could not open this role</h2><p id="detail-error-text"></p><button type="button" class="button button-secondary" id="detail-retry">Try again</button></div>
+      <div id="detail-content" class="detail-content" hidden>
+        <div class="detail-company-line"><span class="company-monogram" id="detail-monogram" aria-hidden="true"></span><span id="detail-company"></span><span class="badge" id="detail-status"></span></div>
+        <h2 id="detail-title" tabindex="-1">Job details</h2>
+        <p class="detail-location"><svg class="icon" aria-hidden="true"><use href="#i-location"/></svg><span id="detail-location"></span></p>
+        <div id="detail-tags" class="job-tags"></div>
+        <div class="detail-share" id="detail-share" hidden><label for="share-url">Copy this link</label><input type="url" readonly id="share-url"></div>
+        <div class="detail-match"><div class="detail-score"><strong id="detail-score">—</strong><span>match score</span></div><div><h3>Why it’s on your radar</h3><ul id="detail-reasons"></ul></div></div>
+        <dl class="detail-facts"><div><dt>Application deadline</dt><dd id="detail-deadline"></dd></div><div><dt>Date posted</dt><dd id="detail-posted"></dd></div><div><dt>Compensation</dt><dd id="detail-salary"></dd></div><div><dt>Listing status</dt><dd id="detail-active"></dd></div></dl>
+        <section id="deadline-evidence-section" class="detail-section" hidden><h3>Published deadline</h3><blockquote id="detail-evidence"></blockquote><a id="deadline-source" class="external-text" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" hidden>View deadline source <svg class="icon" aria-hidden="true"><use href="#i-external"/></svg></a></section>
+        <section class="detail-section eligibility-section"><h3>Before you apply</h3><ul id="detail-eligibility"></ul><p class="detail-help">A match is a starting point, not an eligibility guarantee. Confirm student status, graduation requirements and work authorization with the employer.</p></section>
+        <section class="detail-section"><h3>About the role</h3><div id="detail-description" class="plain-description"></div></section>
+        <section class="detail-section provenance-section"><h3>Listing &amp; freshness</h3><p id="detail-verification"></p><ul id="detail-sources"></ul><dl class="provenance-dates"><div><dt>First found</dt><dd id="detail-first-seen"></dd></div><div><dt>Last seen</dt><dd id="detail-last-seen"></dd></div></dl><p class="detail-help">Last seen is the latest time a source returned this listing. Open the original to confirm it is still accepting applications.</p></section>
+      </div>
+      <footer id="detail-actions" class="detail-actions" hidden>
+        <div class="detail-action-primary"><a id="apply-link" class="button button-primary" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Apply externally<svg class="icon" aria-hidden="true"><use href="#i-external"/></svg></a><span id="apply-unavailable" class="muted" hidden>No valid application link published.</span><button type="button" class="button button-secondary" id="detail-save"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg><span>Save role</span></button></div>
+        <div class="detail-state-actions"><button type="button" class="text-button" id="detail-applied"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>Mark applied</span></button><button type="button" class="text-button dismiss-button" id="detail-dismiss"><span>Dismiss role</span></button></div>
+        <p>Opening a listing never marks it applied. You control your progress.</p>
+      </footer>
+    </div>
+  </dialog>
+  <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <h2 id="confirm-title">Are you sure?</h2>
+    <p id="confirm-message"></p>
+    <div class="confirm-actions"><button type="button" class="button button-secondary" id="confirm-cancel">Cancel</button><button type="button" class="button button-primary" id="confirm-ok">Confirm</button></div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="sr-only" id="announcer" role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

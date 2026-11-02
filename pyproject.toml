@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "career-radar"
+version = "2.0.0"
+description = "Self-hosted job radar for Canadian internships, co-ops, new-grad and entry-level tech roles"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [{ name = "QuestyFella" }]
+keywords = ["jobs", "internships", "new-grad", "canada", "job-board", "self-hosted"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Framework :: FastAPI",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+  "httpx>=0.27,<1",
+  "idna>=3,<4",
+  "beautifulsoup4>=4.12,<5",
+  "python-dateutil>=2.9,<3",
+  "six>=1.16",
+  "pycountry>=24.6,<27",
+  "pypdf>=5,<7",
+]
+
+[project.urls]
+Homepage = "https://github.com/QuestyFella/career-radar"
+Repository = "https://github.com/QuestyFella/career-radar"
+Issues = "https://github.com/QuestyFella/career-radar/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[project.scripts]
+career-radar = "career_radar.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["career_radar*"]
+
+[tool.setuptools.package-data]
+career_radar = ["boards/*.json", "static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
